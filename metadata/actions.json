@@ -1,0 +1,125 @@
+{
+  "sections": [
+    {
+      "name": "Card Drawing and Discarding",
+      "actions": [
+        { "sequence": 1, "action": "draw_from_deck", "description": "Draw a card from the deck", "id": "1.1" },
+        { "sequence": 2, "action": "draw_from_discard_pile", "description": "Draw a card from the discard pile", "id": "1.2" },
+        { "sequence": 3, "action": "draw_multiple_cards", "description": "Draw multiple cards from the deck", "id": "1.3", "amount": 2 },
+        { "sequence": 4, "action": "draw_and_peek", "description": "Draw a card from the deck and peek", "id": "1.4" },
+        { "sequence": 5, "action": "draw_and_replace", "description": "Draw a card from the deck and replace it", "id": "1.5" },
+        { "sequence": 6, "action": "discard_to_pile", "description": "Discard a card to the pile", "id": "1.6" },
+        { "sequence": 7, "action": "discard_multiple_cards", "description": "Discard multiple cards to the pile", "id": "1.7", "amount": 2 }
+      ]
+    },
+    {
+      "name": "Card Playing and Placement",
+      "actions": [
+        { "sequence": 8, "action": "play_card_to_table", "description": "Play a card to the table", "id": "2.1" },
+        { "sequence": 9, "action": "play_card_to_specific_location", "description": "Play a card to a specific location", "id": "2.2" },
+        { "sequence": 10, "action": "play_multiple_cards", "description": "Play multiple cards to the table", "id": "2.3", "amount": 2 },
+        { "sequence": 11, "action": "play_face_down", "description": "Play a card face down", "id": "2.4" }
+      ]
+    },
+    {
+      "name": "Card Revealing and Peeking",
+      "actions": [
+        { "sequence": 12, "action": "reveal_card_to_all_players", "description": "Reveal a card to all players", "id": "3.1" },
+        { "sequence": 13, "action": "reveal_card_to_specific_players", "description": "Reveal a card to specific players", "id": "3.2" },
+        { "sequence": 14, "action": "peek_at_a_card", "description": "Peek at a card", "id": "3.3" },
+        { "sequence": 15, "action": "reveal_and_compare", "description": "Reveal cards and compare", "id": "3.4" }
+      ]
+    },
+    {
+      "name": "Card Passing and Swapping",
+      "actions": [
+        { "sequence": 16, "action": "pass_card_to_player", "description": "Pass a card to another player", "id": "4.1" },
+        { "sequence": 17, "action": "pass_multiple_cards", "description": "Pass multiple cards to another player", "id": "4.2", "amount": 2 },
+        { "sequence": 18, "action": "swap_cards", "description": "Swap cards with another player", "id": "4.3" }
+      ]
+    },
+    {
+      "name": "Card Shuffling and Sorting",
+      "actions": [
+        { "sequence": 19, "action": "shuffle_deck", "description": "Shuffle the deck", "id": "5.1" },
+        { "sequence": 20, "action": "shuffle_specific_piles", "description": "Shuffle specific piles of cards", "id": "5.2" },
+        { "sequence": 21, "action": "sort_cards_in_hand", "description": "Sort cards in hand", "id": "5.3" },
+        { "sequence": 22, "action": "sort_cards_on_table", "description": "Sort cards on the table", "id": "5.4" }
+      ]
+    },
+    {
+      "name": "Card Collecting and Managing",
+      "actions": [
+        { "sequence": 23, "action": "collect_cards_from_table", "description": "Collect cards from the table", "id": "6.1" },
+        { "sequence": 24, "action": "collect_cards_into_pile_or_hand", "description": "Collect cards into a pile or hand", "id": "6.2" },
+        { "sequence": 25, "action": "collect_from_multiple_locations", "description": "Collect cards from multiple locations", "id": "6.3" },
+        { "sequence": 26, "action": "redistribute_cards", "description": "Redistribute cards", "id": "6.4" }
+      ]
+    },
+    {
+      "name": "Special Card Actions",
+      "actions": [
+        { "sequence": 27, "action": "special_card_actions", "description": "Perform special card actions (e.g., skip, reverse, draw two in Uno)", "id": "7.1" },
+        { "sequence": 28, "action": "lock_unlock_cards", "description": "Lock or unlock cards", "id": "7.2" },
+        { "sequence": 29, "action": "temporary_card_holding", "description": "Temporarily hold a card", "id": "7.3" }
+      ]
+    },
+    {
+      "name": "Betting and Money Handling Actions",
+      "actions": [
+        { "sequence": 30, "action": "place_money_on_table", "description": "Place money on the table", "id": "13.1" },
+        { "sequence": 31, "action": "give_money_to_another_player", "description": "Give money to another player", "id": "13.2" },
+        { "sequence": 32, "action": "take_money_from_table", "description": "Take money from the table", "id": "13.3" },
+        { "sequence": 33, "action": "take_money_from_player", "description": "Take money from another player", "id": "13.4" },
+        { "sequence": 34, "action": "fold_a_hand", "description": "Fold a hand", "id": "8.4" }
+      ]
+    },
+    {
+      "name": "Scoring and Winning Conditions",
+      "actions": [
+        { "sequence": 35, "action": "calculate_points_for_hand", "description": "Calculate points for a hand", "id": "9.1" },
+        { "sequence": 36, "action": "add_penalty_points", "description": "Add penalty points", "id": "9.2" },
+        { "sequence": 37, "action": "update_overall_score", "description": "Update overall score", "id": "9.3" },
+        { "sequence": 38, "action": "declare_a_hand", "description": "Declare a hand", "id": "9.4" }
+      ]
+    },
+    {
+      "name": "Turn and Order Management",
+      "actions": [
+        { "sequence": 39, "action": "turn_order_manipulation", "description": "Manipulate the turn order", "id": "10.1" }
+      ]
+    },
+    {
+      "name": "Validation and Verification",
+      "actions": [
+        { "sequence": 40, "action": "select_cards_from_hand", "description": "Select cards from hand", "id": "11.1" },
+        { "sequence": 41, "action": "validate_selected_cards", "description": "Validate selected cards", "id": "11.2" },
+        { "sequence": 42, "action": "place_set_or_run_on_table", "description": "Place a set or run on the table", "id": "11.3" },
+        { "sequence": 43, "action": "play_card_following_suit_rules", "description": "Play a card following suit rules", "id": "11.4" },
+        { "sequence": 44, "action": "determine_trick_winner", "description": "Determine the winner of a trick", "id": "11.5" },
+        { "sequence": 45, "action": "collect_trick_by_winner", "description": "Collect the trick by the winner", "id": "11.6" }
+      ]
+    },
+    {
+      "name": "Pot Management",
+      "actions": [
+        { "sequence": 46, "action": "add_to_pot", "description": "Add money to the pot", "id": "15.1" },
+        { "sequence": 47, "action": "reset_pot", "description": "Reset the pot to zero", "id": "15.2" }
+      ]
+    },
+    {
+      "name": "Showdown and Payout",
+      "actions": [
+        { "sequence": 48, "action": "distribute_pot", "description": "Distribute the pot to the winner", "id": "16.1" },
+        { "sequence": 49, "action": "split_pot", "description": "Split the pot among multiple winners", "id": "16.2" }
+      ]
+    },
+    {
+      "name": "Penalties and Rewards",
+      "actions": [
+        { "sequence": 50, "action": "deduct_penalty", "description": "Deduct a penalty amount from a player's balance", "id": "17.1" },
+        { "sequence": 51, "action": "award_bonus", "description": "Add a bonus amount to a player's balance", "id": "17.2" }
+      ]
+    }
+  ]
+}
