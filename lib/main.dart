@@ -1,10 +1,10 @@
-import 'package:deckopia/profile.dart';
-import 'package:deckopia/settings.dart';
+import 'package:deckopia/page/profile.dart';
+import 'package:deckopia/page/settings.dart';
 import 'package:flutter/material.dart';
 
-import 'game_builder.dart';
-import 'game_selection.dart';
-import 'homepage.dart';
+import 'core/game_builder.dart';
+import 'core/game_selection.dart';
+import 'page/homepage.dart';
 
 void main() {
   runApp(const MyApp());

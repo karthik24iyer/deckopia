@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
-import '../models/game_rule.dart';
+import '../config/game_rule.dart';
 
 Future<List<Section>> loadSections() async {
   try {

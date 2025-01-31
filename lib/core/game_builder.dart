@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:deckopia/models/game_rule.dart';
+import 'package:deckopia/config/game_rule.dart';
 import 'package:deckopia/service/action_json_reader.dart';
 import 'dart:convert';
 

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:deckopia/util/snap_area_config.dart';
+import 'package:deckopia/config/snap_area_config.dart';
 
 class PlayingCardConfig {
   final double maxRotationDegrees;

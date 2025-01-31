@@ -1,4 +1,4 @@
-import 'package:deckopia/util/snap_area_config.dart';
+import 'package:deckopia/config/snap_area_config.dart';
 import 'package:flutter/material.dart';
 
 class SnapArea extends StatelessWidget {

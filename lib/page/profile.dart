@@ -1,7 +1,7 @@
-import 'package:deckopia/util/card_models.dart';
-import 'package:deckopia/util/playing_card.dart';
+import 'package:deckopia/models/card_models.dart';
+import 'package:deckopia/models/playing_card.dart';
 import 'package:deckopia/util/snap_area.dart';
-import 'package:deckopia/util/snap_area_config.dart';
+import 'package:deckopia/config/snap_area_config.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
