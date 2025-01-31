@@ -3,37 +3,13 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:deckopia/config/snap_area_config.dart';
-
-class PlayingCardConfig {
-  final double maxRotationDegrees;
-  final Duration rotationUpdateInterval;
-  final Duration rotationTransitionDuration;
-  final Duration flipDuration;
-  final double cardWidth;
-  final double cardAspectRatio;
-  final Offset? initialPosition;
-  final double? initialRotation;
-  final bool initiallyFaceUp;
-
-  const PlayingCardConfig({
-    this.maxRotationDegrees = 20.0,
-    this.rotationUpdateInterval = const Duration(milliseconds: 500),
-    this.rotationTransitionDuration = const Duration(milliseconds: 150),
-    this.flipDuration = const Duration(milliseconds: 800),
-    this.cardWidth = 200.0,
-    this.cardAspectRatio = 1.4981,
-    this.initialPosition,
-    this.initialRotation,
-    this.initiallyFaceUp = true,
-  });
-}
+import 'package:deckopia/util/config_provider.dart';
 
 class PlayingCard extends StatefulWidget {
   final String suit;
   final String rank;
   final List<SnapAreaConfig> snapAreas;
   final int initialSnapAreaIndex;
-  final PlayingCardConfig config;
   final VoidCallback? onDragStart;
 
   const PlayingCard({
@@ -42,7 +18,6 @@ class PlayingCard extends StatefulWidget {
     required this.rank,
     required this.snapAreas,
     this.initialSnapAreaIndex = 0,
-    this.config = const PlayingCardConfig(),
     this.onDragStart,
   });
 
@@ -62,27 +37,16 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
   Timer? _rotationTimer;
   double _currentRotation = 0.0;
   double _targetRotation = 0.0;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
     currentSnapAreaIndex = widget.initialSnapAreaIndex;
-    _currentRotation = widget.config.initialRotation ?? 0.0;
-    _isFrontVisible = widget.config.initiallyFaceUp;
-    _initializePosition();
-    _initializeAnimations();
 
-    // Set initial flip animation value based on card face
-    if (!_isFrontVisible) {
-      _flipController.value = 1.0; // Start with back side showing
-    }
-  }
-
-  void _initializeAnimations() {
-    _flipController = AnimationController(
-      duration: widget.config.flipDuration,
-      vsync: this,
-    );
+    // Initialize controllers without duration (will be set in didChangeDependencies)
+    _flipController = AnimationController(vsync: this);
+    _rotationController = AnimationController(vsync: this);
 
     _flipAnimation = Tween<double>(
       begin: 0,
@@ -99,11 +63,6 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
         }
       });
     });
-
-    _rotationController = AnimationController(
-      duration: widget.config.rotationTransitionDuration,
-      vsync: this,
-    );
 
     _rotationAnimation = Tween<double>(
       begin: 0,
@@ -124,38 +83,63 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      final cardConfig = context.cardConfig;
+
+      // Initialize state variables that depend on config
+      _isFrontVisible = cardConfig.initial.isFaceUp;
+      _currentRotation = cardConfig.initial.rotation;
+
+      // Set controller durations
+      _flipController.duration = cardConfig.animation.flipDuration;
+      _rotationController.duration = cardConfig.animation.rotationTransitionDuration;
+
+      // Initialize position
+      _initializePosition();
+
+      // Set initial flip state
+      if (!_isFrontVisible) {
+        _flipController.value = 1.0;
+      }
+
+      _initialized = true;
+    }
+  }
+
+  void _initializePosition() {
+    final snapArea = widget.snapAreas[widget.initialSnapAreaIndex];
+    position = Offset(
+      snapArea.position.dx + (snapArea.size.width - cardSize.width) / 2,
+      snapArea.position.dy + (snapArea.size.height - cardSize.height) / 2,
+    );
+  }
+
+  Size get cardSize => Size(
+    context.cardConfig.dimensions.width,
+    context.cardConfig.dimensions.width * context.cardConfig.dimensions.aspectRatio,
+  );
+
   void _startRandomRotation() {
     _rotationTimer?.cancel();
-    _rotationTimer = Timer.periodic(widget.config.rotationUpdateInterval, (timer) {
-      if (mounted) {
-        final maxRadians = widget.config.maxRotationDegrees * math.pi / 180;
-        _targetRotation = (_random.nextDouble() * 2 - 1) * maxRadians;
-        _rotationController.forward(from: 0);
-      }
-    });
+    _rotationTimer = Timer.periodic(
+      context.cardConfig.animation.rotationUpdateInterval,
+          (timer) {
+        if (mounted) {
+          final maxRadians = context.cardConfig.animation.maxRotationDegrees * math.pi / 180;
+          _targetRotation = (_random.nextDouble() * 2 - 1) * maxRadians;
+          _rotationController.forward(from: 0);
+        }
+      },
+    );
   }
 
   void _stopRandomRotation() {
     _rotationTimer?.cancel();
     _rotationTimer = null;
   }
-
-  void _initializePosition() {
-    if (widget.config.initialPosition != null) {
-      position = widget.config.initialPosition!;
-    } else {
-      final snapArea = widget.snapAreas[widget.initialSnapAreaIndex];
-      position = Offset(
-        snapArea.position.dx + (snapArea.size.width - cardSize.width) / 2,
-        snapArea.position.dy + (snapArea.size.height - cardSize.height) / 2,
-      );
-    }
-  }
-
-  Size get cardSize => Size(
-    widget.config.cardWidth,
-    widget.config.cardWidth * widget.config.cardAspectRatio,
-  );
 
   void _updateSnapArea(Offset newPosition) {
     int? newSnapAreaIndex;
@@ -177,7 +161,6 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
   void _snapToNearestArea() {
     _stopRandomRotation();
 
-    // Find the nearest snap area
     int nearestAreaIndex = 0;
     double minDistance = double.infinity;
 
@@ -194,13 +177,11 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       }
     }
 
-    // Always snap to the nearest area, regardless of current position
     setState(() {
       currentSnapAreaIndex = nearestAreaIndex;
       position = widget.snapAreas[nearestAreaIndex].clampPosition(position, cardSize);
 
-      // Apply a small random rotation when snapping
-      final maxRadians = widget.config.maxRotationDegrees * math.pi / 180;
+      final maxRadians = context.cardConfig.animation.maxRotationDegrees * math.pi / 180;
       _targetRotation = (_random.nextDouble() - 0.5) * 2 * maxRadians;
       _rotationController.forward(from: 0);
     });
@@ -225,6 +206,8 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+    final cardConfig = context.cardConfig;
+
     return Positioned(
       left: position.dx,
       top: position.dy,
@@ -234,15 +217,11 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
           widget.onDragStart?.call();
         },
         onPanUpdate: (details) {
-          final newPosition = Offset(
-            position.dx + details.delta.dx,
-            position.dy + details.delta.dy,
-          );
-
           setState(() {
-            // Allow free movement while dragging
-            position = newPosition;
-            // Check if we're in a snap area
+            position = Offset(
+              position.dx + details.delta.dx,
+              position.dy + details.delta.dy,
+            );
             _updateSnapArea(position);
           });
         },
@@ -251,8 +230,7 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
         onTap: _flipCard,
         child: Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ(_currentRotation),
+          transform: Matrix4.identity()..rotateZ(_currentRotation),
           child: AnimatedBuilder(
             animation: _flipAnimation,
             builder: (context, child) {
@@ -265,7 +243,7 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
                   width: cardSize.width,
                   height: cardSize.height,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(cardConfig.dimensions.borderRadius),
                     image: DecorationImage(
                       image: AssetImage(
                         _isFrontVisible
@@ -274,13 +252,6 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
                       ),
                       fit: BoxFit.cover,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
                   ),
                 ),
               );

@@ -1,111 +1,195 @@
-// import 'package:flutter/material.dart';
-//
-// /// Global application configuration
-// class AppConfig {
-//   /// Card-related configurations
-//   static const cardConfig = CardConfig();
-//
-//   /// Animation-related configurations
-//   static const animationConfig = AnimationConfig();
-//
-//   /// Layout-related configurations
-//   static const layoutConfig = LayoutConfig();
-//
-//   /// Visual style configurations
-//   static const styleConfig = StyleConfig();
-//
-//   /// Asset path configurations
-//   static const assetConfig = AssetConfig();
-// }
-//
-// /// Configuration for card properties and dimensions
-// class CardConfig {
-//   // Card Dimensions
-//   final double cardWidth = 200.0;
-//   final double cardHeight = 350.0;
-//   final double cornerRadius = 20.0;
-//   final double cardAspectRatio = 1.4981;
-//
-//   // Card Interaction
-//   final double dragSensitivity = 1.0;
-//   final double snapThreshold = 0.5;
-//   final double velocityThreshold = 1000.0;
-//
-//   // Card Stack
-//   final int maxStackSize = 5;
-//   final double stackSpacing = 2.0;
-//
-//   const CardConfig();
-// }
-//
-// /// Configuration for animations and transitions
-// class AnimationConfig {
-//   // Duration Settings
-//   final Duration flipDuration = const Duration(milliseconds: 800);
-//   final Duration snapDuration = const Duration(milliseconds: 300);
-//   final Duration rotationUpdateInterval = const Duration(milliseconds: 500);
-//   final Duration rotationTransitionDuration = const Duration(milliseconds: 150);
-//
-//   // Animation Properties
-//   final double maxRotationDegrees = 20.0;
-//   final Curve flipCurve = Curves.easeInOut;
-//   final Curve rotationCurve = Curves.easeInOut;
-//   final Curve snapCurve = Curves.easeOutBack;
-//
-//   const AnimationConfig();
-// }
-//
-// /// Configuration for layout and positioning
-// class LayoutConfig {
-//   // Spacing and Padding
-//   final double snapAreaSpacing = 40.0;
-//   final double screenEdgePadding = 20.0;
-//   final double snapDetectionPadding = 20.0;
-//   final double cornerPadding = 10.0;
-//   final double symbolSpacing = 0.0;
-//
-//   // Area Ratios
-//   final double upperSnapAreaHeightRatio = 0.38;
-//   final double lowerSnapAreaHeightRatio = 0.38;
-//   final double upperSnapAreaWidthRatio = 0.4;
-//   final double lowerSnapAreaWidthRatio = 0.9;
-//
-//   const LayoutConfig();
-// }
-//
-// /// Configuration for visual styles and decorations
-// class StyleConfig {
-//   // Colors
-//   final Color redSuitColor = Colors.red;
-//   final Color blackSuitColor = Colors.black;
-//   final Color cardBackground = Colors.white;
-//   final Color shadowColor = Colors.black26;
-//
-//   // Font Sizes
-//   final double cornerRankSize = 24.0;
-//   final double cornerSuitSize = 24.0;
-//   final double centerSuitSize = 100.0;
-//
-//   // Shadow Properties
-//   final double shadowBlur = 8.0;
-//   final Offset shadowOffset = const Offset(0, 2);
-//   final double shadowOpacity = 0.2;
-//
-//   // Pattern Properties
-//   final double patternOpacity = 0.6;
-//
-//   const StyleConfig();
-// }
-//
-// /// Configuration for asset paths and resources
-// class AssetConfig {
-//   // Card Assets
-//   final String cardBackPath = 'assets/cards/back.png';
-//   final String cardFacePath = 'assets/cards/{suit}/{suit}-{rank}.png';
-//
-//   // Pattern Assets
-//   final String redPatternPath = 'assets/red_pattern.png';
-//   final String blackPatternPath = 'assets/black_pattern.png';
-//
-//   const AssetConfig();
-// }
+import 'dart:convert';
+import 'package:flutter/services.dart';
+
+// Card-specific configurations
+class CardDimensions {
+  final double width;
+  final double aspectRatio;
+  final double borderRadius;
+
+  CardDimensions.fromJson(Map<String, dynamic> json)
+      : width = json['width'].toDouble(),
+        aspectRatio = json['aspectRatio'].toDouble(),
+        borderRadius = json['borderRadius'].toDouble();
+}
+
+class CardSpacing {
+  final double cornerPadding;
+  final double symbolSpacing;
+  final double deckOffset;
+
+  CardSpacing.fromJson(Map<String, dynamic> json)
+      : cornerPadding = json['cornerPadding'].toDouble(),
+        symbolSpacing = json['symbolSpacing'].toDouble(),
+        deckOffset = json['deckOffset'].toDouble();
+}
+
+class CardFonts {
+  final double cornerRankSize;
+  final double cornerSuitSize;
+  final double centerSymbolSize;
+
+  CardFonts.fromJson(Map<String, dynamic> json)
+      : cornerRankSize = json['cornerRankSize'].toDouble(),
+        cornerSuitSize = json['cornerSuitSize'].toDouble(),
+        centerSymbolSize = json['centerSymbolSize'].toDouble();
+}
+
+class CardColors {
+  final Color redSuit;
+  final Color blackSuit;
+  final Color background;
+  final Color shadow;
+
+  CardColors.fromJson(Map<String, dynamic> json)
+      : redSuit = _parseColor(json['redSuit']),
+        blackSuit = _parseColor(json['blackSuit']),
+        background = _parseColor(json['background']),
+        shadow = _parseColor(json['shadow']);
+
+  static Color _parseColor(String hexColor) {
+    hexColor = hexColor.replaceFirst('#', '');
+    if (hexColor.length == 8) {
+      return Color(int.parse('0x$hexColor'));
+    }
+    return Color(int.parse('0xFF$hexColor'));
+  }
+}
+
+class CardShadow {
+  final double blur;
+  final double spread;
+  final double offsetX;
+  final double offsetY;
+  final double opacity;
+
+  CardShadow.fromJson(Map<String, dynamic> json)
+      : blur = json['blur'].toDouble(),
+        spread = json['spread'].toDouble(),
+        offsetX = json['offsetX'].toDouble(),
+        offsetY = json['offsetY'].toDouble(),
+        opacity = json['opacity'].toDouble();
+}
+
+class CardAnimation {
+  final double maxRotationDegrees;
+  final Duration rotationUpdateInterval;
+  final Duration rotationTransitionDuration;
+  final Duration flipDuration;
+
+  CardAnimation.fromJson(Map<String, dynamic> json)
+      : maxRotationDegrees = json['maxRotationDegrees'].toDouble(),
+        rotationUpdateInterval = Duration(milliseconds: json['rotationUpdateIntervalMs']),
+        rotationTransitionDuration = Duration(milliseconds: json['rotationTransitionDurationMs']),
+        flipDuration = Duration(milliseconds: json['flipDurationMs']);
+}
+
+class CardInitial {
+  final bool isFaceUp;
+  final double rotation;
+
+  CardInitial.fromJson(Map<String, dynamic> json)
+      : isFaceUp = json['isFaceUp'],
+        rotation = json['rotation'].toDouble();
+}
+
+class CardConfig {
+  final CardDimensions dimensions;
+  final CardSpacing spacing;
+  final CardFonts fonts;
+  final CardColors colors;
+  final CardShadow shadow;
+  final CardAnimation animation;
+  final CardInitial initial;
+  final double patternOpacity;
+
+  CardConfig.fromJson(Map<String, dynamic> json)
+      : dimensions = CardDimensions.fromJson(json['dimensions']),
+        spacing = CardSpacing.fromJson(json['spacing']),
+        fonts = CardFonts.fromJson(json['fonts']),
+        colors = CardColors.fromJson(json['colors']),
+        shadow = CardShadow.fromJson(json['shadow']),
+        animation = CardAnimation.fromJson(json['animation']),
+        initial = CardInitial.fromJson(json['initial']),
+        patternOpacity = json['pattern']['opacity'].toDouble();
+}
+
+// Layout configurations
+class LayoutContainers {
+  final double width;
+  final double deckHeight;
+  final double playAreaHeight;
+
+  LayoutContainers.fromJson(Map<String, dynamic> json)
+      : width = json['width'].toDouble(),
+        deckHeight = json['deckHeight'].toDouble(),
+        playAreaHeight = json['playAreaHeight'].toDouble();
+}
+
+class LayoutConfig {
+  final LayoutContainers containers;
+
+  LayoutConfig.fromJson(Map<String, dynamic> json)
+      : containers = LayoutContainers.fromJson(json['containers']);
+}
+
+// Snap area configurations
+class SnapAreaStyle {
+  final Color borderColor;
+  final double borderRadius;
+  final double labelTextSize;
+  final double labelPadding;
+
+  SnapAreaStyle.fromJson(Map<String, dynamic> json)
+      : borderColor = CardColors._parseColor(json['borderColor']),
+        borderRadius = json['borderRadius'].toDouble(),
+        labelTextSize = json['labelTextSize'].toDouble(),
+        labelPadding = json['labelPadding'].toDouble();
+}
+
+class SnapConfig {
+  final SnapAreaStyle style;
+
+  SnapConfig.fromJson(Map<String, dynamic> json)
+      : style = SnapAreaStyle.fromJson(json['style']);
+}
+
+// App configurations
+class AppTheme {
+  final Color primaryColor;
+  final bool showDebugBanner;
+
+  AppTheme.fromJson(Map<String, dynamic> json)
+      : primaryColor = CardColors._parseColor(json['primaryColor']),
+        showDebugBanner = json['showDebugBanner'];
+}
+
+class AppConfig {
+  final AppTheme theme;
+  final String title;
+
+  AppConfig.fromJson(Map<String, dynamic> json)
+      : theme = AppTheme.fromJson(json['theme']),
+        title = json['title'];
+}
+
+// Main configuration class
+class Config {
+  final CardConfig card;
+  final LayoutConfig layout;
+  final SnapConfig snapArea;
+  final AppConfig app;
+
+  Config.fromJson(Map<String, dynamic> json)
+      : card = CardConfig.fromJson(json['card']),
+        layout = LayoutConfig.fromJson(json['layout']),
+        snapArea = SnapConfig.fromJson(json['snapArea']),
+        app = AppConfig.fromJson(json['app']);
+
+  // Static method to load configuration from asset
+  static Future<Config> load() async {
+    final jsonString = await rootBundle.loadString('assets/config/app_config.json');
+    final jsonMap = json.decode(jsonString);
+    return Config.fromJson(jsonMap);
+  }
+}

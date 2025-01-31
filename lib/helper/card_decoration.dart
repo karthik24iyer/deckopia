@@ -1,61 +1,74 @@
+// card_decoration.dart
+import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 
-class CardProperties {
+import '../config/app_config.dart';
+
+class CardDecorationBuilder {
+  final BuildContext context;
+
+  // Constructor requires BuildContext to access configuration
+  const CardDecorationBuilder(this.context);
+
+  // Get card config for shorter access
+  CardConfig get _config => context.cardConfig;
+
   // Card Dimensions
-  static const double cardWidth = 200.0;
-  static const double cardHeight = 350.0;
-  static const double cardBorderRadius = 5;
+  Size get cardSize => Size(
+    _config.dimensions.width,
+    _config.dimensions.width * _config.dimensions.aspectRatio,
+  );
+
+  double get borderRadius => _config.dimensions.borderRadius;
 
   // Spacing and Padding
-  static const double cornerPadding = 10.0;
-  static const double symbolSpacing = 0.0;
+  double get cornerPadding => _config.spacing.cornerPadding;
+  double get symbolSpacing => _config.spacing.symbolSpacing;
 
   // Font Sizes
-  static const double cornerRankSize = 24.0;
-  static const double cornerSuitSize = 24.0;
-  static const double centerSuitSize = 100.0;
+  double get cornerRankSize => _config.fonts.cornerRankSize;
+  double get cornerSuitSize => _config.fonts.cornerSuitSize;
+  double get centerSymbolSize => _config.fonts.centerSymbolSize;
 
   // Colors
-  static const Color redSuitColor = Colors.red;
-  static const Color blackSuitColor = Colors.black;
-  static const Color cardBackground = Colors.white;
-  static const Color shadowColor = Colors.black26;
+  Color get redSuitColor => _config.colors.redSuit;
+  Color get blackSuitColor => _config.colors.blackSuit;
+  Color get cardBackground => _config.colors.background;
+  Color get shadowColor => _config.colors.shadow;
 
   // Shadow Properties
-  static const double shadowBlur = 8.0;
-  static const Offset shadowOffset = Offset(0, 2);
+  double get shadowBlur => _config.shadow.blur;
+  double get shadowSpread => _config.shadow.spread;
+  Offset get shadowOffset => Offset(
+    _config.shadow.offsetX,
+    _config.shadow.offsetY,
+  );
+  double get shadowOpacity => _config.shadow.opacity;
 
   // Pattern Properties
-  static const double patternOpacity = 0.6;
+  double get patternOpacity => _config.patternOpacity;
 
   // Text Styles
-  static TextStyle cornerRankStyle(bool isRed) => TextStyle(
+  TextStyle cornerRankStyle(bool isRed) => TextStyle(
     fontSize: cornerRankSize,
     fontWeight: FontWeight.bold,
     color: isRed ? redSuitColor : blackSuitColor,
   );
 
-  static TextStyle cornerSuitStyle(bool isRed) => TextStyle(
+  TextStyle cornerSuitStyle(bool isRed) => TextStyle(
     fontSize: cornerSuitSize,
     color: isRed ? redSuitColor : blackSuitColor,
   );
 
-  static TextStyle centerSuitStyle(bool isRed) => TextStyle(
-    fontSize: centerSuitSize,
+  TextStyle centerSuitStyle(bool isRed) => TextStyle(
+    fontSize: centerSymbolSize,
     color: isRed ? redSuitColor : blackSuitColor,
   );
 
   // Card Decoration
-  static BoxDecoration cardDecoration(bool isRed) => BoxDecoration(
+  BoxDecoration cardDecoration(bool isRed) => BoxDecoration(
     color: cardBackground,
-    borderRadius: BorderRadius.circular(cardBorderRadius),
-    boxShadow: [
-      BoxShadow(
-        color: shadowColor,
-        blurRadius: shadowBlur,
-        offset: shadowOffset,
-      ),
-    ],
+    borderRadius: BorderRadius.circular(borderRadius),
     image: DecorationImage(
       image: AssetImage(
         isRed ? 'assets/red_pattern.png' : 'assets/black_pattern.png',

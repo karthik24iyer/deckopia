@@ -61,15 +61,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         builder: (context, constraints) {
           // Constants for layout
           const horizontalPadding = 20.0;
-          const verticalPadding = 20.0;
-          const centerSpacing = 40.0; // Space between top areas
+          const verticalPadding = 50.0;
+          const centerSpacing = 80.0; // Space between top areas
 
           // Calculate sizes
           final upperSnapAreaWidth = (constraints.maxWidth - (2 * horizontalPadding) - centerSpacing) / 2;
-          final upperSnapAreaHeight = constraints.maxHeight * 0.38;
+          final upperSnapAreaHeight = constraints.maxHeight * 0.3;
           final lowerSnapAreaWidth = constraints.maxWidth * 0.9;
-          final lowerSnapAreaHeight = constraints.maxHeight * 0.38;
-          final cardSize = Size(200.0, 200.0 * 1.4981);
+          final lowerSnapAreaHeight = constraints.maxHeight * 0.3;
+          final cardSize = Size(160.0, 200.0 * 1.4981);
 
           // Upper left snap area
           final topLeftArea = SnapAreaConfig(
@@ -137,11 +137,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   rank: cardMap['rank']!,
                   snapAreas: [topLeftArea, topRightArea, bottomArea],
                   initialSnapAreaIndex: 0,
-                  config: PlayingCardConfig(
-                    initialPosition: initialPositions[cardId],
-                    initialRotation: initialRotations[cardId],
-                    initiallyFaceUp: false,
-                  ),
                   onDragStart: () => _bringCardToFront(cardId),
                 );
               }).toList(),

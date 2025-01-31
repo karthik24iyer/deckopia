@@ -1,0 +1,67 @@
+{
+  "card": {
+    "dimensions": {
+      "width": 160.0,
+      "aspectRatio": 1.4981,
+      "borderRadius": 20.0
+    },
+    "spacing": {
+      "cornerPadding": 10.0,
+      "symbolSpacing": 0.0,
+      "deckOffset": 2.0
+    },
+    "fonts": {
+      "cornerRankSize": 24.0,
+      "cornerSuitSize": 24.0,
+      "centerSymbolSize": 50.0
+    },
+    "colors": {
+      "redSuit": "#FF0000",
+      "blackSuit": "#000000",
+      "background": "#FFFFFF",
+      "shadow": "#42000000"
+    },
+    "shadow": {
+      "blur": 8.0,
+      "spread": 2.0,
+      "offsetX": 0.0,
+      "offsetY": 2.0,
+      "opacity": 0.5
+    },
+    "pattern": {
+      "opacity": 0.6
+    },
+    "animation": {
+      "maxRotationDegrees": 20.0,
+      "rotationUpdateIntervalMs": 500,
+      "rotationTransitionDurationMs": 150,
+      "flipDurationMs": 800
+    },
+    "initial": {
+      "isFaceUp": false,
+      "rotation": 0.0
+    }
+  },
+  "layout": {
+    "containers": {
+      "width": 260.0,
+      "deckHeight": 400.0,
+      "playAreaHeight": 360.0
+    }
+  },
+  "snapArea": {
+    "style": {
+      "borderColor": "#2196F380",
+      "borderRadius": 12.0,
+      "labelTextSize": 12.0,
+      "labelPadding": 8.0
+    }
+  },
+  "app": {
+    "theme": {
+      "primaryColor": "#2196F3",
+      "showDebugBanner": false
+    },
+    "title": "Card Game App"
+  }
+}
