@@ -63,6 +63,7 @@ flutter:
     - metadata/actions.json
     - assets/red_pattern.png
     - assets/black_pattern.png
+    - assets/table.png
     - assets/cards/
     - assets/cards/spade/
     - assets/cards/dice/

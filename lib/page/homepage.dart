@@ -33,9 +33,9 @@ class HomePage extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/profile');
+                Navigator.pushNamed(context, '/board');
               },
-              child: const Text('Profile'),
+              child: const Text('Board'),
             ),
           ],
         ),

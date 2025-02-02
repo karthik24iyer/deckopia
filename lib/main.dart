@@ -1,4 +1,4 @@
-import 'package:deckopia/page/profile.dart';
+import 'package:deckopia/page/Board.dart';
 import 'package:deckopia/page/settings.dart';
 import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
           '/game-selection': (context) => const GameSelectionScreen(),
           '/game-builder': (context) => const GameBuilderScreen(),
           '/settings': (context) => const SettingsScreen(),
-          '/profile': (context) => const ProfileScreen(),
+          '/board': (context) => const BoardScreen(),
         },
       ),
     );

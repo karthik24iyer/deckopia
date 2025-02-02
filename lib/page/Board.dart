@@ -5,14 +5,14 @@ import 'package:deckopia/config/snap_area_config.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class BoardScreen extends StatefulWidget {
+  const BoardScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<BoardScreen> createState() => _BoardScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _BoardScreenState extends State<BoardScreen> {
   final _random = math.Random();
   late List<PlayingCardModel> deckCards;
   final Map<String, Offset> initialPositions = {};
@@ -109,7 +109,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               // Background color or pattern if needed
               Container(
-                color: Colors.grey[100],
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/table.png'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
 
               // Snap Areas
