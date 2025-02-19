@@ -60,7 +60,13 @@
   "app": {
     "theme": {
       "primaryColor": "#2196F3",
-      "showDebugBanner": false
+      "backgroundColor": "#f8f1ee",
+      "showDebugBanner": false,
+      "fonts": {
+        "fontFamily": "CaveatBrush",
+        "titleSize": 32.0,
+        "buttonTextSize": 24.0
+      }
     },
     "title": "Card Game App"
   }

@@ -157,11 +157,15 @@ class SnapConfig {
 // App configurations
 class AppTheme {
   final Color primaryColor;
+  final Color backgroundColor;
   final bool showDebugBanner;
+  final AppFonts fonts;
 
   AppTheme.fromJson(Map<String, dynamic> json)
       : primaryColor = CardColors._parseColor(json['primaryColor']),
-        showDebugBanner = json['showDebugBanner'];
+        backgroundColor = CardColors._parseColor(json['backgroundColor']),
+        showDebugBanner = json['showDebugBanner'],
+        fonts = AppFonts.fromJson(json['fonts']);
 }
 
 class AppConfig {
@@ -192,4 +196,15 @@ class Config {
     final jsonMap = json.decode(jsonString);
     return Config.fromJson(jsonMap);
   }
+}
+
+class AppFonts {
+  final String fontFamily;
+  final double titleSize;
+  final double buttonTextSize;
+
+  AppFonts.fromJson(Map<String, dynamic> json)
+      : fontFamily = json['fontFamily'],
+        titleSize = json['titleSize'].toDouble(),
+        buttonTextSize = json['buttonTextSize'].toDouble();
 }

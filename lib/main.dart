@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
         title: config.app.title,
         theme: ThemeData(
           primaryColor: config.app.theme.primaryColor,
+          scaffoldBackgroundColor: config.app.theme.backgroundColor,
         ),
         home: const HomePage(),
         routes: {
