@@ -71,7 +71,7 @@ class CardDecorationBuilder {
     borderRadius: BorderRadius.circular(borderRadius),
     image: DecorationImage(
       image: AssetImage(
-        isRed ? 'assets/red_pattern.png' : 'assets/black_pattern.png',
+        isRed ? 'assets/images/red_pattern.png' : 'assets/images/black_pattern.png',
       ),
       opacity: patternOpacity,
       fit: BoxFit.cover,

@@ -111,7 +111,8 @@ class _BoardScreenState extends State<BoardScreen> {
               Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage('assets/table.png'),
+                    opacity: 0.8,
+                    image: AssetImage('assets/images/table.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -120,11 +121,11 @@ class _BoardScreenState extends State<BoardScreen> {
               // Snap Areas
               SnapArea(
                 config: topLeftArea,
-                label: 'Deck',
+                label: '',
               ),
               SnapArea(
                 config: topRightArea,
-                label: 'Played',
+                label: '',
               ),
               SnapArea(
                 config: bottomArea,

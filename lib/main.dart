@@ -1,4 +1,5 @@
-import 'package:deckopia/page/Board.dart';
+import 'package:deckopia/page/board.dart';
+import 'package:deckopia/page/join_game.dart';
 import 'package:deckopia/page/settings.dart';
 import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
@@ -31,12 +32,12 @@ class MyApp extends StatelessWidget {
         title: config.app.title,
         theme: ThemeData(
           primaryColor: config.app.theme.primaryColor,
-          scaffoldBackgroundColor: config.app.theme.backgroundColor,
+          scaffoldBackgroundColor: Colors.transparent,
         ),
         home: const HomePage(),
         routes: {
-          '/game-selection': (context) => const GameSelectionScreen(),
-          '/game-builder': (context) => const GameBuilderScreen(),
+          '/host-game': (context) => const GameSelectionScreen(),
+          '/join-game': (context) => const JoinGameScreen(),
           '/settings': (context) => const SettingsScreen(),
           '/board': (context) => const BoardScreen(),
         },
@@ -44,3 +45,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+// () => Navigator.pushNamed(context, '/board'),

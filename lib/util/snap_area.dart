@@ -20,7 +20,7 @@ class SnapArea extends StatelessWidget {
         width: config.size.width,
         height: config.size.height,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black.withOpacity(0.1)),
+          border: Border.all(color: Colors.black.withOpacity(0.01)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
