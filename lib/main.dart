@@ -1,3 +1,4 @@
+import 'package:deckopia/helper/page_transition.dart';
 import 'package:deckopia/page/board.dart';
 import 'package:deckopia/page/join_game.dart';
 import 'package:deckopia/page/settings.dart';
@@ -14,7 +15,6 @@ void main() async {
   final config = await Config.load();
   runApp(MyApp(config: config));
 }
-
 class MyApp extends StatelessWidget {
   final Config config;
 
@@ -35,16 +35,41 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.transparent,
         ),
         home: const HomePage(),
-        routes: {
-          '/host-game': (context) => const GameSelectionScreen(),
-          '/join-game': (context) => const JoinGameScreen(),
-          '/settings': (context) => const SettingsScreen(),
-          '/board': (context) => const BoardScreen(),
+        onGenerateRoute: (settings) {
+          Widget page;
+
+          switch (settings.name) {
+            case '/host-game':
+              page = const GameSelectionScreen();
+              break;
+            case '/join-game':
+              page = const JoinGameScreen();
+              break;
+            case '/settings':
+              page = const SettingsScreen();
+              break;
+            case '/board':
+              page = const BoardScreen();
+              break;
+
+            default:
+              page = const HomePage();
+          }
+
+          return PageTransition(child: page);
         },
       ),
     );
   }
 }
-
-
 // () => Navigator.pushNamed(context, '/board'),
+
+// case '/host-game-temp':
+//   final args = settings.arguments as String; // Your custom arguments class
+//   page = GameSelectionScreen(gameId: args.gameId);
+//   break;
+// Navigator.pushNamed(
+//   context,
+//   '/host-game',
+//   arguments: GameArguments(gameId: 'abc123'),
+// );
