@@ -17,12 +17,12 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
   final GameService _gameService = GameService();
   bool _isLoading = false;
   final List<TextEditingController> _controllers = List.generate(
-    6,
+    4,
         (index) => TextEditingController(),
   );
 
   final List<FocusNode> _focusNodes = List.generate(
-    6,
+    4,
         (index) => FocusNode(),
   );
 
@@ -64,7 +64,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
   Future<void> _verifyAndNavigate() async {
     String otp = _controllers.map((controller) => controller.text).join();
 
-    if (otp.length != 6) {
+    if (otp.length != 4) {
       _showErrorDialog();
       return;
     }
@@ -199,7 +199,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: List.generate(
-                            6,
+                            4,
                                 (index) => Container(
                               width: 45,
                               margin: const EdgeInsets.symmetric(horizontal: 5),
@@ -225,7 +225,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                                   ),
                                 ),
                                 onChanged: (value) {
-                                  if (value.isNotEmpty && index < 5) {
+                                  if (value.isNotEmpty && index < 3) {
                                     _focusNodes[index + 1].requestFocus();
                                   } else if (value.isEmpty && index > 0) {
                                     _focusNodes[index - 1].requestFocus();

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 // Mock API service
 class GameService {
-  static const String mockOTP = '123456';
+  static const String mockOTP = '1234';
 
   Future<bool> verifyOTP(String otp) async {
     // Simulate API delay
