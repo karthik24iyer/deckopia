@@ -24,8 +24,14 @@ class _BoardScreenState extends State<BoardScreen> {
     super.initState();
     // Generate all cards
     deckCards = PlayingCardModel.generateDeck(includeJokers: false);
+    // Shuffle the deck
+    _shuffleDeck();
     // Initialize card order with all card IDs
     cardOrder = deckCards.map((card) => card.id).toList();
+  }
+
+  void _shuffleDeck() {
+    deckCards.shuffle(_random);
   }
 
   void _bringCardToFront(String cardId) {
