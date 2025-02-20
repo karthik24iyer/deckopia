@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-class SharedBackgroundPageRoute extends PageRouteBuilder {
+class PageTransition extends PageRouteBuilder {
   final Widget child;
 
-  SharedBackgroundPageRoute({required this.child})
+  PageTransition({required this.child})
       : super(
     pageBuilder: (context, animation, secondaryAnimation) => child,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -12,7 +12,7 @@ class SharedBackgroundPageRoute extends PageRouteBuilder {
         child: child,
       );
     },
-    transitionDuration: const Duration(milliseconds: 400),
-    reverseTransitionDuration: const Duration(milliseconds: 400),
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: const Duration(milliseconds: 200),
   );
 }

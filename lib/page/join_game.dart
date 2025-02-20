@@ -1,8 +1,10 @@
+import 'package:deckopia/models/board_entity.dart';
+import 'package:deckopia/page/player_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:deckopia/util/config_provider.dart';
 import '../helper/otp_error_dialog.dart';
-import '../helper/sketchy_button_painter.dart';
+import '../helper/sketchy_painter.dart';
 import '../models/sketchy_button.dart';
 import '../service/game_service.dart';
 
@@ -80,7 +82,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const PlayerInfoScreen(),
+            builder: (context) => PlayerInfoScreen(board: BoardEntity(boardId: '123', numberOfPlayers: 4, type: 'dummy'),),
           ),
         );
       } else {
@@ -252,23 +254,6 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Placeholder PlayerInfo screen
-class PlayerInfoScreen extends StatelessWidget {
-  const PlayerInfoScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Player Info'),
-      ),
-      body: const Center(
-        child: Text('Player Info Screen'),
       ),
     );
   }

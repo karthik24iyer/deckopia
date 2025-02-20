@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/util/config_provider.dart';
-import 'package:deckopia/helper/sketchy_button_painter.dart';
+import 'package:deckopia/helper/sketchy_painter.dart';
 
 class SketchyButton extends StatelessWidget {
   final String text;

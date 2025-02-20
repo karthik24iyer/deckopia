@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/util/config_provider.dart';
-import 'package:deckopia/helper/shared_background_page_route.dart';
+import 'package:deckopia/helper/page_transition.dart';
 
 import '../models/sketchy_button.dart';
 import 'join_game.dart';
@@ -91,13 +91,7 @@ class HomePage extends StatelessWidget {
                         SketchyButton(
                           text: 'Join Game',
                           color: Colors.lightBlue.shade100,
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              SharedBackgroundPageRoute(
-                                child: const JoinGameScreen(),
-                              ),
-                            );
-                          },
+                          onPressed: () => Navigator.pushNamed(context, '/join-game'),
                           seed: 1,
                           width: constraints.maxWidth / 2,
                         ),

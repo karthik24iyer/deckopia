@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/util/config_provider.dart';
-import '../helper/sketchy_button_painter.dart';
+import '../helper/sketchy_painter.dart';
 import '../models/sketchy_button.dart';
 
 class OtpErrorDialog extends StatelessWidget {
