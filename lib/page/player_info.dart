@@ -60,24 +60,6 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
     });
   }
 
-  void _handleKeyPress(String value) {
-    if (_currentCharIndex < 6) {
-      setState(() {
-        _nameChars[_currentCharIndex] = value;
-        _currentCharIndex++;
-      });
-    }
-  }
-
-  void _handleBackspace() {
-    if (_currentCharIndex > 0) {
-      setState(() {
-        _currentCharIndex--;
-        _nameChars[_currentCharIndex] = '';
-      });
-    }
-  }
-
   bool get _isNameComplete => _currentCharIndex == 6;
 
   void _navigateToBoardScreen() {
