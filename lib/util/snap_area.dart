@@ -1,4 +1,5 @@
 import 'package:deckopia/config/snap_area_config.dart';
+import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 
 class SnapArea extends StatelessWidget {
@@ -13,6 +14,9 @@ class SnapArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final snapAreaConfig = context.snapAreaConfig;
+    final style = snapAreaConfig.style;
+
     return Positioned(
       left: config.position.dx,
       top: config.position.dy,
@@ -20,19 +24,19 @@ class SnapArea extends StatelessWidget {
         width: config.size.width,
         height: config.size.height,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.black.withOpacity(0.01)),
-          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black.withOpacity(style.borderOpacity)),
+          borderRadius: BorderRadius.circular(style.borderRadius),
         ),
         child: Column(
           children: [
             if (label.isNotEmpty)
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(style.labelPadding),
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: Colors.blue.withOpacity(0.5),
-                    fontSize: 12,
+                    color: style.borderColor,
+                    fontSize: style.labelTextSize,
                   ),
                 ),
               ),

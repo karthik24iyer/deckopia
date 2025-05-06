@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:deckopia/util/config_provider.dart';
+
+import '../config/app_config.dart';
 
 // Mock API service
 class GameService {
-  static const String mockOTP = '1234';
+  final GameConfig _config;
+
+  GameService(this._config);
 
   Future<bool> verifyOTP(String otp) async {
     // Simulate API delay
-    await Future.delayed(const Duration(milliseconds: 1));
-    return otp == mockOTP;
+    await Future.delayed(Duration(milliseconds: _config.otpDelay));
+    return otp == _config.mockOTP;
   }
 }

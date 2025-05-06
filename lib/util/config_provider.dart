@@ -29,4 +29,9 @@ extension ConfigProviderExtension on BuildContext {
   LayoutConfig get layoutConfig => config.layout;
   SnapConfig get snapAreaConfig => config.snapArea;
   AppConfig get appConfig => config.app;
+  
+  Config? tryReadConfig() {
+    final provider = dependOnInheritedWidgetOfExactType<ConfigProvider>();
+    return provider?.config;
+  }
 }

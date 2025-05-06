@@ -1,13 +1,12 @@
 import 'package:deckopia/helper/page_transition.dart';
 import 'package:deckopia/page/board.dart';
+import 'package:deckopia/page/host_game.dart';
 import 'package:deckopia/page/join_game.dart';
 import 'package:deckopia/page/settings.dart';
 import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'config/app_config.dart';
-import 'core/game_builder.dart';
-import 'core/game_selection.dart';
 import 'page/homepage.dart';
 
 void main() async {
@@ -40,7 +39,7 @@ class MyApp extends StatelessWidget {
 
           switch (settings.name) {
             case '/host-game':
-              page = const GameSelectionScreen();
+              page = const HostGameScreen();
               break;
             case '/join-game':
               page = const JoinGameScreen();

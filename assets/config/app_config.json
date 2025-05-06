@@ -47,6 +47,11 @@
       "width": 260.0,
       "deckHeight": 400.0,
       "playAreaHeight": 360.0
+    },
+    "board": {
+      "horizontalPadding": 20.0,
+      "verticalPadding": 50.0,
+      "centerSpacing": 80.0
     }
   },
   "snapArea": {
@@ -54,7 +59,8 @@
       "borderColor": "#2196F380",
       "borderRadius": 12.0,
       "labelTextSize": 12.0,
-      "labelPadding": 8.0
+      "labelPadding": 8.0,
+      "borderOpacity": 0.01
     }
   },
   "app": {
@@ -69,5 +75,91 @@
       }
     },
     "title": "Card Game App"
+  },
+  "sketchyButton": {
+    "height": 60.0,
+    "shadow": {
+      "blur": 4.0,
+      "offsetX": 0.0,
+      "offsetY": 2.0,
+      "opacity": 0.1
+    },
+    "noiseMagnitude": 2.0,
+    "curveNoiseMagnitude": 3.0
+  },
+  "background": {
+    "overlay": {
+      "opacityTop": 0.95,
+      "opacityBottom": 0.8
+    },
+    "imageOpacity": 0.8
+  },
+  "dialogs": {
+    "otpError": {
+      "backgroundColor": "#FFFDF0",
+      "fontSize": 24.0,
+      "padding": {
+        "horizontal": 24.0,
+        "vertical": 32.0
+      },
+      "spacing": 16.0,
+      "titleSpacing": 32.0,
+      "retryColor": "#90CAF9",
+      "exitColor": "#EF9A9A"
+    }
+  },
+  "animations": {
+    "pageTransition": {
+      "duration": 200
+    }
+  },
+  "spacing": {
+    "default": 20.0,
+    "small": 16.0,
+    "large": 40.0
+  },
+  "colors": {
+    "buttonColors": {
+      "lightBlue": "#90CAF9",
+      "yellow": "#FFF59D",
+      "pink": "#F8BBD0",
+      "red": "#FFCDD2"
+    },
+    "gradientOpacities": {
+      "white": {
+        "top": 0.7,
+        "bottom": 0.3
+      }
+    },
+    "overlayOpacities": {
+      "standard": 0.85,
+      "light": 0.7
+    }
+  },
+  "sketchy": {
+    "borderColor": "#DE000000",
+    "borderWidth": 2.0,
+    "selectedBorderColor": "#FF000000",
+    "selectedBorderWidth": 1.0,
+    "strokeWidth": 2.0,
+    "segmentLength": 20.0,
+    "numberOfPoints": 20,
+    "randomOffset": 0.9
+  },
+  "board": {
+    "stackOffset": 0.0,
+    "snapAreaSizes": {
+      "upperWidthFactor": 0.5,
+      "upperHeightFactor": 0.3,
+      "lowerWidthFactor": 0.9,
+      "lowerHeightFactor": 0.3
+    },
+    "rotation": {
+      "maxRadians": 0.0174533
+    }
+  },
+  "game": {
+    "mockOTP": "1234",
+    "otpDelay": 1000
   }
 }

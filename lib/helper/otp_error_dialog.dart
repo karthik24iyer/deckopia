@@ -16,16 +16,25 @@ class OtpErrorDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appConfig = context.appConfig;
+    final dialogConfig = context.config.dialogs.otpError;
+    final sketchyConfig = context.config.sketchy;
+    final sketchyButtonConfig = context.config.sketchyButton;
 
     return Dialog(
       backgroundColor: Colors.transparent,
       child: CustomPaint(
         painter: SketchyButtonPainter(
-          const Color(0xFFFFFDF0), // Light yellow background
+          dialogConfig.backgroundColor,
           0, // Using 0 as seed for container
+          sketchyButtonConfig.noiseMagnitude,
+          sketchyButtonConfig.curveNoiseMagnitude,
+          sketchyConfig,
         ),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: EdgeInsets.symmetric(
+            horizontal: dialogConfig.padding.horizontal,
+            vertical: dialogConfig.padding.vertical,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -33,24 +42,24 @@ class OtpErrorDialog extends StatelessWidget {
               Text(
                 'Umm.. you sure that\'s right?',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: dialogConfig.fontSize,
                   fontFamily: appConfig.theme.fonts.fontFamily,
                   fontWeight: FontWeight.w600,
                   height: 1.2,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: dialogConfig.titleSpacing),
               SketchyButton(
                 text: 'Retry',
-                color: Colors.lightBlue.shade100,
+                color: dialogConfig.retryColor,
                 onPressed: onRetry,
                 seed: 1,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: dialogConfig.spacing),
               SketchyButton(
                 text: 'I\'m done with this',
-                color: Colors.red.shade100,
+                color: dialogConfig.exitColor,
                 onPressed: onExit,
                 seed: 1,
               ),

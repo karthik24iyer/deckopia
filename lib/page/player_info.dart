@@ -77,10 +77,13 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final appConfig = context.appConfig;
     final size = MediaQuery.of(context).size;
+    final sketchyConfig = context.config.sketchy;
+    final sketchyButtonConfig = context.config.sketchyButton;
+    final backgroundConfig = context.config.background;
+    final colorConfig = context.config.colors;
 
     return Scaffold(
       backgroundColor: appConfig.theme.backgroundColor,
@@ -103,6 +106,7 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
               child: Image.asset(
                 'assets/images/home_background.png',
                 fit: BoxFit.cover,
+                opacity: AlwaysStoppedAnimation(backgroundConfig.imageOpacity),
               ),
             ),
           ),
@@ -115,8 +119,8 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    appConfig.theme.backgroundColor.withOpacity(0.95),
-                    appConfig.theme.backgroundColor.withOpacity(0.8),
+                    appConfig.theme.backgroundColor.withOpacity(backgroundConfig.overlay.opacityTop),
+                    appConfig.theme.backgroundColor.withOpacity(backgroundConfig.overlay.opacityBottom),
                   ],
                 ),
               ),
@@ -169,7 +173,13 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                               height: 40,
                               margin: const EdgeInsets.only(right: 16),
                               child: CustomPaint(
-                                painter: SketchyCircle(_selectedColor!, 0, true),
+                                painter: SketchyCircle(
+                                  _selectedColor!, 
+                                  0, 
+                                  true,
+                                  sketchyConfig,
+                                  sketchyButtonConfig.noiseMagnitude,
+                                ),
                               ),
                             ),
                           Stack(
@@ -230,7 +240,11 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
 
                       // Color selection grid
                       CustomPaint(
-                        painter: SketchyContainerPainter(1),
+                        painter: SketchyContainerPainter(
+                          1,
+                          sketchyConfig,
+                          sketchyButtonConfig.noiseMagnitude,
+                        ),
                         child: Padding(
                           padding: EdgeInsets.all(size.height * 0.02),
                           child: GridView.builder(
@@ -255,6 +269,8 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                                     _colorOptions[index],
                                     index + 1,
                                     true,
+                                    sketchyConfig,
+                                    sketchyButtonConfig.noiseMagnitude,
                                   ),
                                 ),
                               );
@@ -269,7 +285,7 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                       SketchyButton(
                         text: 'GLHF',
                         color: (_colorOptions.contains(_selectedColor) && _isNameComplete)
-                            ? Colors.lightBlue.shade100
+                            ? colorConfig.buttonColors.lightBlue
                             : Colors.grey.shade300,
                         onPressed: (_colorOptions.contains(_selectedColor) && _isNameComplete)
                             ? _navigateToBoardScreen

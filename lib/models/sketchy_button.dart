@@ -8,7 +8,7 @@ class SketchyButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final int seed;
   final double? width;
-  final double height;
+  final double? height;
   final bool isLoading;
 
   const SketchyButton({
@@ -18,28 +18,36 @@ class SketchyButton extends StatelessWidget {
     required this.onPressed,
     required this.seed,
     this.width,
-    this.height = 60,
+    this.height,
     this.isLoading = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final appConfig = context.appConfig;
+    final buttonConfig = context.config.sketchyButton;
+    final shadow = buttonConfig.shadow;
 
     return Container(
       width: width,
-      height: height,
+      height: height ?? buttonConfig.height,
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(shadow.opacity),
+            blurRadius: shadow.blur,
+            offset: Offset(shadow.offsetX, shadow.offsetY),
           ),
         ],
       ),
       child: CustomPaint(
-        painter: SketchyButtonPainter(color, seed),
+        painter: SketchyButtonPainter(
+          color, 
+          seed, 
+          buttonConfig.noiseMagnitude,
+          buttonConfig.curveNoiseMagnitude,
+          context.config.sketchy,
+        ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(

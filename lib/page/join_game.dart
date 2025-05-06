@@ -16,7 +16,7 @@ class JoinGameScreen extends StatefulWidget {
 }
 
 class _JoinGameScreenState extends State<JoinGameScreen> {
-  final GameService _gameService = GameService();
+  GameService? _gameService;
   bool _isLoading = false;
   final List<TextEditingController> _controllers = List.generate(
     4,
@@ -27,6 +27,12 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
     4,
         (index) => FocusNode(),
   );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _gameService ??= GameService(context.config.game);
+  }
 
   @override
   void dispose() {
@@ -76,7 +82,10 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
     });
 
     try {
-      bool isValid = await _gameService.verifyOTP(otp);
+      // Ensure gameService is initialized
+      _gameService ??= GameService(context.config.game);
+      
+      bool isValid = await _gameService!.verifyOTP(otp);
 
       if (isValid) {
         Navigator.pushReplacement(
@@ -240,7 +249,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                         const SizedBox(height: 40),
                         SketchyButton(
                           text: 'Join Game',
-                          color: Colors.lightBlue.shade100,
+                          color: context.config.colors.buttonColors.lightBlue,
                           onPressed: _verifyAndNavigate,
                           seed: 1,
                           width: MediaQuery.of(context).size.width / 2,

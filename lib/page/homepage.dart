@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/util/config_provider.dart';
-import 'package:deckopia/helper/page_transition.dart';
-
 import '../models/sketchy_button.dart';
-import 'join_game.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -11,6 +8,10 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appConfig = context.appConfig;
+    final colorConfig = context.config.colors;
+    final spacingConfig = context.config.spacing;
+    final backgroundConfig = context.config.background;
+    final shadowConfig = context.config.sketchyButton.shadow;
 
     return Scaffold(
       backgroundColor: appConfig.theme.backgroundColor,
@@ -24,8 +25,8 @@ class HomePage extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.white.withOpacity(0.7),
-                    Colors.white.withOpacity(0.3),
+                    Colors.white.withOpacity(colorConfig.whiteGradient.top),
+                    Colors.white.withOpacity(colorConfig.whiteGradient.bottom),
                   ],
                 ).createShader(bounds);
               },
@@ -33,6 +34,7 @@ class HomePage extends StatelessWidget {
               child: Image.asset(
                 'assets/images/home_background.png',
                 fit: BoxFit.cover,
+                opacity: AlwaysStoppedAnimation(backgroundConfig.imageOpacity),
               ),
             ),
           ),
@@ -40,13 +42,13 @@ class HomePage extends StatelessWidget {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: appConfig.theme.backgroundColor.withOpacity(0.85),
+                color: appConfig.theme.backgroundColor.withOpacity(colorConfig.standardOverlay),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    appConfig.theme.backgroundColor.withOpacity(0.95),
-                    appConfig.theme.backgroundColor.withOpacity(0.8),
+                    appConfig.theme.backgroundColor.withOpacity(backgroundConfig.overlay.opacityTop),
+                    appConfig.theme.backgroundColor.withOpacity(backgroundConfig.overlay.opacityBottom),
                   ],
                 ),
               ),
@@ -54,24 +56,27 @@ class HomePage extends StatelessWidget {
           ),
           // Content
           Container(
-            padding: const EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(spacingConfig.default_),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(
+                    padding: EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
                     ),
                     decoration: BoxDecoration(
-                      color: appConfig.theme.backgroundColor.withOpacity(0.7),
+                      color: appConfig.theme.backgroundColor.withOpacity(colorConfig.lightOverlay),
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                          color: Colors.black.withOpacity(shadowConfig.opacity),
+                          blurRadius: shadowConfig.blur * 2,
+                          offset: Offset(
+                            shadowConfig.offsetX, 
+                            shadowConfig.offsetY * 2
+                          ),
                         ),
                       ],
                     ),
@@ -84,37 +89,37 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: spacingConfig.large),
                   LayoutBuilder(
                     builder: (context, constraints) => Column(
                       children: [
                         SketchyButton(
                           text: 'Join Game',
-                          color: Colors.lightBlue.shade100,
+                          color: colorConfig.buttonColors.lightBlue,
                           onPressed: () => Navigator.pushNamed(context, '/join-game'),
                           seed: 1,
                           width: constraints.maxWidth / 2,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: spacingConfig.default_),
                         SketchyButton(
                           text: 'Host Game',
-                          color: Colors.lightBlue.shade100,
-                          onPressed: () => print('Host Game pressed'),
+                          color: colorConfig.buttonColors.lightBlue,
+                          onPressed: () => Navigator.pushNamed(context, '/host-game'),
                           seed: 2,
                           width: constraints.maxWidth / 2,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: spacingConfig.default_),
                         SketchyButton(
                           text: 'Settings',
-                          color: Colors.yellow.shade100,
-                          onPressed: () => print('Settings pressed'),
+                          color: colorConfig.buttonColors.yellow,
+                          onPressed: () => Navigator.pushNamed(context, '/settings'),
                           seed: 3,
                           width: constraints.maxWidth / 2,
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: spacingConfig.default_),
                         SketchyButton(
                           text: 'What to Play!',
-                          color: Colors.pink.shade100,
+                          color: colorConfig.buttonColors.pink,
                           onPressed: () => Navigator.pushNamed(context, '/board'),
                           seed: 4,
                           width: constraints.maxWidth / 2,

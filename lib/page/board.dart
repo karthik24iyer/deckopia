@@ -2,6 +2,7 @@ import 'package:deckopia/models/card_models.dart';
 import 'package:deckopia/models/playing_card.dart';
 import 'package:deckopia/util/snap_area.dart';
 import 'package:deckopia/config/snap_area_config.dart';
+import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -43,7 +44,7 @@ class _BoardScreenState extends State<BoardScreen> {
 
   Offset _getStackedPosition(SnapAreaConfig snapArea, Size cardSize, int index) {
     // Stack cards with a small offset
-    const stackOffset = 0.0; // Offset in pixels for each card
+    final stackOffset = context.config.board.stackOffset;
 
     // Calculate center position within snap area
     final centerX = snapArea.position.dx + (snapArea.size.width - cardSize.width) / 2;
@@ -57,25 +58,33 @@ class _BoardScreenState extends State<BoardScreen> {
 
   double _getRandomRotation() {
     // Smaller rotation range for stacked cards
-    return (_random.nextDouble() - 0.5) * 2 * (math.pi / 180);
+    return (_random.nextDouble() - 0.5) * 2 * context.config.board.rotation.maxRadians;
   }
 
   @override
   Widget build(BuildContext context) {
+    final cardConfig = context.cardConfig;
+    final boardLayoutConfig = context.layoutConfig.board;
+    final boardConfig = context.config.board;
+    final backgroundConfig = context.config.background;
+    
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Constants for layout
-          const horizontalPadding = 20.0;
-          const verticalPadding = 50.0;
-          const centerSpacing = 80.0; // Space between top areas
+          // Get layout constants from config
+          final horizontalPadding = boardLayoutConfig.horizontalPadding;
+          final verticalPadding = boardLayoutConfig.verticalPadding;
+          final centerSpacing = boardLayoutConfig.centerSpacing;
 
-          // Calculate sizes
-          final upperSnapAreaWidth = (constraints.maxWidth - (2 * horizontalPadding) - centerSpacing) / 2;
-          final upperSnapAreaHeight = constraints.maxHeight * 0.3;
-          final lowerSnapAreaWidth = constraints.maxWidth * 0.9;
-          final lowerSnapAreaHeight = constraints.maxHeight * 0.3;
-          final cardSize = Size(160.0, 200.0 * 1.4981);
+          // Calculate sizes using factors from config
+          final upperSnapAreaWidth = (constraints.maxWidth - (2 * horizontalPadding) - centerSpacing) * boardConfig.snapAreaSizes.upperWidthFactor;
+          final upperSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.upperHeightFactor;
+          final lowerSnapAreaWidth = constraints.maxWidth * boardConfig.snapAreaSizes.lowerWidthFactor;
+          final lowerSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.lowerHeightFactor;
+          final cardSize = Size(
+            cardConfig.dimensions.width,
+            cardConfig.dimensions.width * cardConfig.dimensions.aspectRatio
+          );
 
           // Upper left snap area
           final topLeftArea = SnapAreaConfig(
@@ -113,12 +122,12 @@ class _BoardScreenState extends State<BoardScreen> {
 
           return Stack(
             children: [
-              // Background color or pattern if needed
+              // Background color or pattern
               Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   image: DecorationImage(
-                    opacity: 0.8,
-                    image: AssetImage('assets/images/table.png'),
+                    opacity: backgroundConfig.imageOpacity,
+                    image: const AssetImage('assets/images/table.png'),
                     fit: BoxFit.cover,
                   ),
                 ),

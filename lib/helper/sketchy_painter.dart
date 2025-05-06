@@ -1,13 +1,24 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
+import '../config/app_config.dart';
+
 class SketchyButtonPainter extends CustomPainter {
   final Color color;
   final int seed;
+  final double noiseMagnitude;
+  final double curveNoiseMagnitude;
+  final SketchyConfig sketchyConfig; // Use config object instead of individual parameters
   late final math.Random random;
   Path? _cachedPath;
 
-  SketchyButtonPainter(this.color, this.seed) {
+  SketchyButtonPainter(
+    this.color, 
+    this.seed, 
+    this.noiseMagnitude, 
+    this.curveNoiseMagnitude,
+    this.sketchyConfig,
+  ) {
     random = math.Random(seed); // Initialize with fixed seed
   }
 
@@ -25,9 +36,9 @@ class SketchyButtonPainter extends CustomPainter {
 
     // Draw the border
     paint
-      ..color = Colors.black87
+      ..color = sketchyConfig.borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = sketchyConfig.strokeWidth;
 
     canvas.drawPath(_cachedPath!, paint);
   }
@@ -37,20 +48,20 @@ class SketchyButtonPainter extends CustomPainter {
 
     // Add random offsets to make it look hand-drawn
     final topLeft = Offset(
-      addNoise(0, 2),
-      addNoise(0, 2),
+      addNoise(0, noiseMagnitude),
+      addNoise(0, noiseMagnitude),
     );
     final topRight = Offset(
-      addNoise(size.width, 2),
-      addNoise(0, 2),
+      addNoise(size.width, noiseMagnitude),
+      addNoise(0, noiseMagnitude),
     );
     final bottomRight = Offset(
-      addNoise(size.width, 2),
-      addNoise(size.height, 2),
+      addNoise(size.width, noiseMagnitude),
+      addNoise(size.height, noiseMagnitude),
     );
     final bottomLeft = Offset(
-      addNoise(0, 2),
-      addNoise(size.height, 2),
+      addNoise(0, noiseMagnitude),
+      addNoise(size.height, noiseMagnitude),
     );
 
     // Create slightly curved lines between points
@@ -73,12 +84,12 @@ class SketchyButtonPainter extends CustomPainter {
 
   void _addCurvedLine(Path path, Offset start, Offset end) {
     final controlPoint1 = Offset(
-      start.dx + (end.dx - start.dx) / 3 + addNoise(0, 3),
-      start.dy + (end.dy - start.dy) / 3 + addNoise(0, 3),
+      start.dx + (end.dx - start.dx) * sketchyConfig.firstControlPoint + addNoise(0, curveNoiseMagnitude),
+      start.dy + (end.dy - start.dy) * sketchyConfig.firstControlPoint + addNoise(0, curveNoiseMagnitude),
     );
     final controlPoint2 = Offset(
-      start.dx + (end.dx - start.dx) * 2 / 3 + addNoise(0, 3),
-      start.dy + (end.dy - start.dy) * 2 / 3 + addNoise(0, 3),
+      start.dx + (end.dx - start.dx) * sketchyConfig.secondControlPoint + addNoise(0, curveNoiseMagnitude),
+      start.dy + (end.dy - start.dy) * sketchyConfig.secondControlPoint + addNoise(0, curveNoiseMagnitude),
     );
 
     path.cubicTo(
@@ -89,30 +100,39 @@ class SketchyButtonPainter extends CustomPainter {
   }
 
   double addNoise(double value, double magnitude) {
-    return value + (random.nextDouble() - 0.9) * magnitude;
+    return value + (random.nextDouble() - sketchyConfig.randomOffset) * magnitude;
   }
 
   @override
   bool shouldRepaint(covariant SketchyButtonPainter oldDelegate) {
-    return color != oldDelegate.color || seed != oldDelegate.seed;
+    return color != oldDelegate.color || 
+           seed != oldDelegate.seed ||
+           noiseMagnitude != oldDelegate.noiseMagnitude ||
+           curveNoiseMagnitude != oldDelegate.curveNoiseMagnitude;
   }
 }
 
 class SketchyContainerPainter extends CustomPainter {
   final int seed;
-
-  SketchyContainerPainter(this.seed);
+  final double noiseMagnitude;
+  final SketchyConfig sketchyConfig;
+  
+  SketchyContainerPainter(
+    this.seed, 
+    this.sketchyConfig,
+    this.noiseMagnitude,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
     final random = math.Random(seed);
     final paint = Paint()
-      ..color = Colors.black
+      ..color = sketchyConfig.borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
+      ..strokeWidth = sketchyConfig.strokeWidth;
 
     final points = <Offset>[];
-    final segmentLength = 20.0;
+    final segmentLength = sketchyConfig.segmentLength;
 
     final horizontalSegments = (size.width / segmentLength).ceil();
     final verticalSegments = (size.height / segmentLength).ceil();
@@ -120,32 +140,32 @@ class SketchyContainerPainter extends CustomPainter {
     // Top line
     for (int i = 0; i <= horizontalSegments; i++) {
       points.add(Offset(
-          i * segmentLength + random.nextDouble() * 4 - 2,
-          random.nextDouble() * 4 - 2
+          i * segmentLength + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude,
+          random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude
       ));
     }
 
     // Right line
     for (int i = 0; i <= verticalSegments; i++) {
       points.add(Offset(
-          size.width + random.nextDouble() * 4 - 2,
-          i * segmentLength + random.nextDouble() * 4 - 2
+          size.width + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude,
+          i * segmentLength + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude
       ));
     }
 
     // Bottom line
     for (int i = horizontalSegments; i >= 0; i--) {
       points.add(Offset(
-          i * segmentLength + random.nextDouble() * 4 - 2,
-          size.height + random.nextDouble() * 4 - 2
+          i * segmentLength + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude,
+          size.height + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude
       ));
     }
 
     // Left line
     for (int i = verticalSegments; i >= 0; i--) {
       points.add(Offset(
-          random.nextDouble() * 4 - 2,
-          i * segmentLength + random.nextDouble() * 4 - 2
+          random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude,
+          i * segmentLength + random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude
       ));
     }
 
@@ -161,15 +181,27 @@ class SketchyContainerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant SketchyContainerPainter oldDelegate) {
+    return seed != oldDelegate.seed || 
+           noiseMagnitude != oldDelegate.noiseMagnitude;
+    // Skip config checks as they rarely change
+  }
 }
 
 class SketchyCircle extends CustomPainter {
   final Color color;
   final int seed;
   final bool isSelected;
+  final double noiseMagnitude;
+  final SketchyConfig sketchyConfig;
 
-  SketchyCircle(this.color, this.seed, this.isSelected);
+  SketchyCircle(
+    this.color, 
+    this.seed, 
+    this.isSelected,
+    this.sketchyConfig,
+    this.noiseMagnitude,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -186,17 +218,16 @@ class SketchyCircle extends CustomPainter {
 
     // Draw sketchy outline
     final outlinePaint = Paint()
-      ..color = isSelected ? Colors.black : Colors.black38
+      ..color = isSelected ? sketchyConfig.selectedBorderColor : sketchyConfig.borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = isSelected ? 2 : 1;
-
-    const numberOfPoints = 20;
+      ..strokeWidth = isSelected ? sketchyConfig.selectedBorderWidth : sketchyConfig.borderWidth;
+    
     var path = Path();
     var firstPoint = true;
 
-    for (var i = 0; i <= numberOfPoints; i++) {
-      final angle = (i / numberOfPoints) * 2 * math.pi;
-      final variance = random.nextDouble() * 4 - 2;
+    for (var i = 0; i <= sketchyConfig.numberOfPoints; i++) {
+      final angle = (i / sketchyConfig.numberOfPoints) * 2 * math.pi;
+      final variance = random.nextDouble() * noiseMagnitude * 2 - noiseMagnitude;
       final x = center.dx + (radius + variance) * math.cos(angle);
       final y = center.dy + (radius + variance) * math.sin(angle);
 
@@ -212,5 +243,11 @@ class SketchyCircle extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant SketchyCircle oldDelegate) {
+    return color != oldDelegate.color || 
+           seed != oldDelegate.seed || 
+           isSelected != oldDelegate.isSelected ||
+           noiseMagnitude != oldDelegate.noiseMagnitude;
+    // Skip config checks as they rarely change
+  }
 }
