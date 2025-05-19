@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/models/sketchy_button.dart';
+import 'package:deckopia/models/sketchy_dropdown_button.dart';
+import 'package:deckopia/helper/sketchy_painter.dart';
+import 'package:deckopia/util/config_provider.dart';
 
 class HostGameScreen extends StatefulWidget {
   const HostGameScreen({Key? key}) : super(key: key);
@@ -39,6 +42,9 @@ class _HostGameScreenState extends State<HostGameScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize cards with the default value of (52*deck)/player
+    _cards = _maxCardsPerPlayer;
+    _cardsController.text = _cards.toString();
     _cardsController.addListener(_validateCards);
   }
 
@@ -235,47 +241,41 @@ class _HostGameScreenState extends State<HostGameScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              Container(
+                              SketchyDropdownButton<int>(
                                 width: 140,
                                 height: 55,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
+                                value: _players,
+                                seed: 10,
+                                fontFamily: 'CaveatBrush',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontFamily: 'CaveatBrush',
                                 ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<int>(
-                                    value: _players,
-                                    icon: const Icon(Icons.arrow_drop_down),
-                                    iconSize: 24,
-                                    elevation: 8,
-                                    isExpanded: true,
-                                    dropdownColor: Colors.white,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontFamily: 'CaveatBrush',
-                                    ),
-                                    alignment: Alignment.center,
-                                    onChanged: (int? newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          _players = newValue;
-                                          _validateCards();
-                                        });
+                                onChanged: (int? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _players = newValue;
+                                      // Always update cards when player count changes
+                                      if (_fullDistribution) {
+                                        _cards = _maxCardsPerPlayer;
+                                        _cardsController.text = _cards.toString();
+                                      } else {
+                                        // Set cards to (52*deck)/player as default
+                                        _cards = _maxCardsPerPlayer;
+                                        _cardsController.text = _cards.toString();
                                       }
-                                    },
-                                    items: _playerOptions.map<DropdownMenuItem<int>>((int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        alignment: Alignment.center,
-                                        child: Text(value.toString()),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
+                                      _validateCards();
+                                    });
+                                  }
+                                },
+                                items: _playerOptions.map<DropdownMenuItem<int>>((int value) {
+                                  return DropdownMenuItem<int>(
+                                    value: value,
+                                    alignment: Alignment.center,
+                                    child: Text(value.toString()),
+                                  );
+                                }).toList(),
                               ),
                               const SizedBox(width: 80,),
                             ],
@@ -294,47 +294,41 @@ class _HostGameScreenState extends State<HostGameScreen> {
                                 ),
                               ),
                               const Spacer(),
-                              Container(
+                              SketchyDropdownButton<int>(
                                 width: 140,
                                 height: 55,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
+                                value: _decks,
+                                seed: 20,
+                                fontFamily: 'CaveatBrush',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontFamily: 'CaveatBrush',
                                 ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<int>(
-                                    value: _decks,
-                                    icon: const Icon(Icons.arrow_drop_down),
-                                    iconSize: 24,
-                                    elevation: 8,
-                                    isExpanded: true,
-                                    dropdownColor: Colors.white,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontFamily: 'CaveatBrush',
-                                    ),
-                                    alignment: Alignment.center,
-                                    onChanged: (int? newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          _decks = newValue;
-                                          _validateCards();
-                                        });
+                                onChanged: (int? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _decks = newValue;
+                                      // Always update cards when deck changes
+                                      if (_fullDistribution) {
+                                        _cards = _maxCardsPerPlayer;
+                                        _cardsController.text = _cards.toString();
+                                      } else {
+                                        // Set cards to (52*deck)/player as default
+                                        _cards = _maxCardsPerPlayer;
+                                        _cardsController.text = _cards.toString();
                                       }
-                                    },
-                                    items: _deckOptions.map<DropdownMenuItem<int>>((int value) {
-                                      return DropdownMenuItem<int>(
-                                        value: value,
-                                        alignment: Alignment.center,
-                                        child: Text(value.toString()),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
+                                      _validateCards();
+                                    });
+                                  }
+                                },
+                                items: _deckOptions.map<DropdownMenuItem<int>>((int value) {
+                                  return DropdownMenuItem<int>(
+                                    value: value,
+                                    alignment: Alignment.center,
+                                    child: Text(value.toString()),
+                                  );
+                                }).toList(),
                               ),
                               const SizedBox(width: 80,),
                             ],
@@ -362,29 +356,44 @@ class _HostGameScreenState extends State<HostGameScreen> {
                                 onPressed: () => _showTooltip('Number of cards per player', _cardsInfoKey),
                               ),
                               const Spacer(),
+                              // Cards input with sketchy style
                               Container(
                                 width: 140,
                                 height: 55,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: _cardsError != null ? Colors.red : Colors.grey.shade400,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: TextField(
-                                  controller: _cardsController,
-                                  enabled: !_fullDistribution,
-                                  keyboardType: TextInputType.number,
-                                  textAlign: TextAlign.center,
-                                  decoration: const InputDecoration(
-                                    border: InputBorder.none,
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 8),
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontFamily: 'CaveatBrush',
-                                  ),
+                                child: Stack(
+                                  children: [
+                                    // Sketchy background
+                                    CustomPaint(
+                                      painter: SketchyButtonPainter(
+                                        const Color(0xFFF8E8B8), // Yellow color to match dropdowns
+                                        50, // Different seed for variation
+                                        context.config.sketchyButton.noiseMagnitude,
+                                        context.config.sketchyButton.curveNoiseMagnitude,
+                                        context.config.sketchy,
+                                      ),
+                                      child: Container(
+                                        width: 140,
+                                        height: 55,
+                                      ),
+                                    ),
+                                    // Text input
+                                    Center(
+                                      child: TextField(
+                                        controller: _cardsController,
+                                        enabled: !_fullDistribution,
+                                        keyboardType: TextInputType.number,
+                                        textAlign: TextAlign.center,
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontFamily: 'CaveatBrush',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               SizedBox(
@@ -454,46 +463,31 @@ class _HostGameScreenState extends State<HostGameScreen> {
                                 onPressed: () => _showTooltip('Total round time per player', _timeInfoKey),
                               ),
                               const Spacer(),
-                              Container(
+                              SketchyDropdownButton<String>(
                                 width: 140,
                                 height: 55,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 2,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
+                                value: _time,
+                                seed: 30,
+                                fontFamily: 'CaveatBrush',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontFamily: 'CaveatBrush',
                                 ),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    value: _time,
-                                    icon: const Icon(Icons.arrow_drop_down),
-                                    iconSize: 24,
-                                    elevation: 8,
-                                    isExpanded: true,
-                                    dropdownColor: Colors.white,
-                                    style: const TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                      fontFamily: 'CaveatBrush',
-                                    ),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _time = newValue;
+                                    });
+                                  }
+                                },
+                                items: _timeOptions.map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
                                     alignment: Alignment.center,
-                                    onChanged: (String? newValue) {
-                                      if (newValue != null) {
-                                        setState(() {
-                                          _time = newValue;
-                                        });
-                                      }
-                                    },
-                                    items: _timeOptions.map<DropdownMenuItem<String>>((String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        alignment: Alignment.center,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
+                                    child: Text(value),
+                                  );
+                                }).toList(),
                               ),
                               const SizedBox(width: 80,)
                             ],
