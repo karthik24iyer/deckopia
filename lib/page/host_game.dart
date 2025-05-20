@@ -417,7 +417,7 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               SizedBox(
                                 width: 80,
                                 child: Padding(
-                                  padding: const EdgeInsets.only(left: 15),
+                                  padding: const EdgeInsets.only(left: 7),
                                   child: Row(
                                     children: [
                                       const Text(
