@@ -12,6 +12,11 @@ class HostGameScreen extends StatefulWidget {
 }
 
 class _HostGameScreenState extends State<HostGameScreen> {
+  // Constants for box dimensions
+  static const double kBoxWidth = 101.0;
+  static const double kBoxHeight = 55.0;
+  static const double kMenuWidth = 101.0; // Width for dropdown menus
+  
   // Values for dropdowns and inputs
   int _players = 4;
   int _decks = 2;
@@ -51,7 +56,13 @@ class _HostGameScreenState extends State<HostGameScreen> {
   @override
   void dispose() {
     _cardsController.dispose();
-    _hideTooltip();
+    
+    // Remove overlay without setState
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    }
+    
     super.dispose();
   }
 
@@ -150,18 +161,23 @@ class _HostGameScreenState extends State<HostGameScreen> {
 
   // Hide tooltip
   void _hideTooltip() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
-
-    setState(() {
-      _tooltipMessage = null;
-    });
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+    }
+    
+    // Only call setState if widget is still mounted
+    if (mounted) {
+      setState(() {
+        _tooltipMessage = null;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F1EE),
+      backgroundColor: context.appConfig.theme.backgroundColor,
       body: Stack(
         children: [
           // Background Image
@@ -190,13 +206,13 @@ class _HostGameScreenState extends State<HostGameScreen> {
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F1EE).withOpacity(0.85),
+                color: context.appConfig.theme.backgroundColor.withOpacity(0.85),
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFFF8F1EE).withOpacity(0.95),
-                    const Color(0xFFF8F1EE).withOpacity(0.8),
+                    context.appConfig.theme.backgroundColor.withOpacity(0.95),
+                    context.appConfig.theme.backgroundColor.withOpacity(0.8),
                   ],
                 ),
               ),
@@ -242,8 +258,9 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               ),
                               const Spacer(),
                               SketchyDropdownButton<int>(
-                                width: 140,
-                                height: 55,
+                                width: kBoxWidth,
+                                height: kBoxHeight,
+                                menuWidth: kMenuWidth,  // Pass the menu width
                                 value: _players,
                                 seed: 10,
                                 fontFamily: 'CaveatBrush',
@@ -295,8 +312,9 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               ),
                               const Spacer(),
                               SketchyDropdownButton<int>(
-                                width: 140,
-                                height: 55,
+                                width: kBoxWidth,
+                                height: kBoxHeight,
+                                menuWidth: kMenuWidth,  // Pass the menu width
                                 value: _decks,
                                 seed: 20,
                                 fontFamily: 'CaveatBrush',
@@ -358,22 +376,22 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               const Spacer(),
                               // Cards input with sketchy style
                               Container(
-                                width: 140,
-                                height: 55,
+                                width: kBoxWidth,
+                                height: kBoxHeight,
                                 child: Stack(
                                   children: [
                                     // Sketchy background
                                     CustomPaint(
                                       painter: SketchyButtonPainter(
-                                        const Color(0xFFF8E8B8), // Yellow color to match dropdowns
+                                        context.config.colors.buttonColors.yellow, // Use color from config
                                         50, // Different seed for variation
                                         context.config.sketchyButton.noiseMagnitude,
                                         context.config.sketchyButton.curveNoiseMagnitude,
                                         context.config.sketchy,
                                       ),
                                       child: Container(
-                                        width: 140,
-                                        height: 55,
+                                        width: kBoxWidth,
+                                        height: kBoxHeight,
                                       ),
                                     ),
                                     // Text input
@@ -464,8 +482,9 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               ),
                               const Spacer(),
                               SketchyDropdownButton<String>(
-                                width: 140,
-                                height: 55,
+                                width: kBoxWidth,
+                                height: kBoxHeight,
+                                menuWidth: kMenuWidth,  // Pass the menu width
                                 value: _time,
                                 seed: 30,
                                 fontFamily: 'CaveatBrush',
@@ -556,7 +575,7 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               const Spacer(),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF8E8B8),
+                                  color: context.config.colors.buttonColors.yellow, // Use color from config
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: TextButton(
@@ -582,7 +601,7 @@ class _HostGameScreenState extends State<HostGameScreen> {
                               const SizedBox(width: 12),
                               Container(
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF8BBD0),
+                                  color: context.config.colors.buttonColors.pink, // Use color from config
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: TextButton(
@@ -618,7 +637,7 @@ class _HostGameScreenState extends State<HostGameScreen> {
                   Center(
                     child: SketchyButton(
                       text: 'Lets Go',
-                      color: Colors.lightBlue.shade100,
+                      color: context.config.colors.buttonColors.lightBlue, // Use color from config
                       onPressed: () {
                         // Check if we have any errors first
                         if (_cardsError != null) {

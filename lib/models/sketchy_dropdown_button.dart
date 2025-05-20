@@ -21,6 +21,7 @@ class SketchyDropdownButton<T> extends StatelessWidget {
   final double? height;
   final TextStyle? style;
   final String fontFamily;
+  final double? menuWidth; // Add parameter for menu width
 
   const SketchyDropdownButton({
     Key? key,
@@ -32,11 +33,13 @@ class SketchyDropdownButton<T> extends StatelessWidget {
     this.height,
     this.style,
     this.fontFamily = 'CaveatBrush',
+    this.menuWidth, // Optional menu width parameter
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final appConfig = context.appConfig;
+    final colorConfig = context.config.colors;
     final buttonConfig = context.config.sketchyButton;
     final sketchyConfig = context.config.sketchy;
     final shadow = buttonConfig.shadow;
@@ -55,7 +58,7 @@ class SketchyDropdownButton<T> extends StatelessWidget {
       ),
       child: CustomPaint(
         painter: SketchyButtonPainter(
-          const Color(0xFFF8E8B8), // Yellow color from Load button
+          colorConfig.buttonColors.yellow, // Yellow color from Load button
           seed,
           buttonConfig.noiseMagnitude,
           buttonConfig.curveNoiseMagnitude,
@@ -66,8 +69,12 @@ class SketchyDropdownButton<T> extends StatelessWidget {
           child: PopupMenuButton<T>(
             initialValue: value,
             onSelected: onChanged,
-            color: const Color(0xFFF8E8B8), // Yellow color for menu background
+            color: colorConfig.buttonColors.yellow, // Yellow color for menu background
             elevation: 8,
+            constraints: BoxConstraints(
+              minWidth: menuWidth ?? width ?? 140, // Use menuWidth or fall back to button width
+              maxWidth: menuWidth ?? width ?? 140, // Constrain max width to ensure consistent size
+            ),
             itemBuilder: (context) {
               return items.map((item) {
                 return PopupMenuItem<T>(
