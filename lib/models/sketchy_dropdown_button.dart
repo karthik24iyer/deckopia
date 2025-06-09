@@ -38,7 +38,6 @@ class SketchyDropdownButton<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final appConfig = context.appConfig;
     final colorConfig = context.config.colors;
     final buttonConfig = context.config.sketchyButton;
     final sketchyConfig = context.config.sketchy;
