@@ -3,6 +3,7 @@ import 'package:deckopia/models/sketchy_button.dart';
 import 'package:deckopia/models/sketchy_dropdown_button.dart';
 import 'package:deckopia/helper/sketchy_painter.dart';
 import 'package:deckopia/util/config_provider.dart';
+import 'package:deckopia/widgets/shared/game_screen_background.dart';
 
 class HostGameScreen extends StatefulWidget {
   const HostGameScreen({Key? key}) : super(key: key);
@@ -79,55 +80,8 @@ class _HostGameScreenState extends State<HostGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.appConfig.theme.backgroundColor,
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
-    return Stack(
-      children: [
-        _buildBackground(),
-        _buildOverlay(),
-        SafeArea(child: _buildContent()),
-      ],
-    );
-  }
-
-  Widget _buildBackground() {
-    return Positioned.fill(
-      child: ShaderMask(
-        shaderCallback: (bounds) => LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withOpacity(context.config.colors.whiteGradient.top),
-            Colors.white.withOpacity(context.config.colors.whiteGradient.bottom),
-          ],
-        ).createShader(bounds),
-        blendMode: BlendMode.dstIn,
-        child: Image.asset(
-          context.assetsConfig.images.homeBackground,
-          fit: BoxFit.cover,
-          opacity: AlwaysStoppedAnimation(context.config.background.imageOpacity),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOverlay() {
-    return Positioned.fill(
-      child: Container(
-        decoration: BoxDecoration(
-          color: context.appConfig.theme.backgroundColor.withOpacity(context.config.colors.standardOverlay),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              context.appConfig.theme.backgroundColor.withOpacity(context.config.background.overlay.opacityTop),
-              context.appConfig.theme.backgroundColor.withOpacity(context.config.background.overlay.opacityBottom),
-            ],
-          ),
-        ),
+      body: GameScreenBackground(
+        child: SafeArea(child: _buildContent()),
       ),
     );
   }

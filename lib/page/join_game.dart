@@ -3,6 +3,7 @@ import 'package:deckopia/page/player_info.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:deckopia/util/config_provider.dart';
+import 'package:deckopia/widgets/shared/game_screen_background.dart';
 import '../helper/otp_error_dialog.dart';
 import '../helper/sketchy_painter.dart';
 import '../models/sketchy_button.dart';
@@ -112,71 +113,33 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
     final appConfig = context.appConfig;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          // Background Image
-          Positioned.fill(
-            child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.white.withOpacity(0.7),
-                    Colors.white.withOpacity(0.3),
-                  ],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.dstIn,
-              child: Image.asset(
-                'assets/images/home_background.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          // Semi-transparent overlay
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                color: appConfig.theme.backgroundColor.withOpacity(0.85),
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    appConfig.theme.backgroundColor.withOpacity(0.95),
-                    appConfig.theme.backgroundColor.withOpacity(0.8),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Content
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () => Navigator.pop(context),
+      backgroundColor: appConfig.theme.backgroundColor,
+      body: GameScreenBackground(
+        child: SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: appConfig.theme.backgroundColor.withOpacity(context.config.colors.lightOverlay),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(context.config.sketchyButton.shadow.opacity),
+                            blurRadius: context.config.sketchyButton.shadow.blur * 2,
+                            offset: Offset(context.config.sketchyButton.shadow.offsetX, context.config.sketchyButton.shadow.offsetY * 2),
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: appConfig.theme.backgroundColor.withOpacity(context.config.colors.lightOverlay),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(context.config.sketchyButton.shadow.opacity),
-                              blurRadius: context.config.sketchyButton.shadow.blur * 2,
-                              offset: Offset(context.config.sketchyButton.shadow.offsetX, context.config.sketchyButton.shadow.offsetY * 2),
-                            ),
-                          ],
-                        ),
                         child: Text(
                           'Join Game',
                           style: TextStyle(
@@ -277,7 +240,7 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
