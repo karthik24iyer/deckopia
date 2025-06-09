@@ -10,7 +10,9 @@ class PlayingCard extends StatefulWidget {
   final String rank;
   final List<SnapAreaConfig> snapAreas;
   final int initialSnapAreaIndex;
+  final Function(int snapAreaIndex)? onSnapToArea;
   final VoidCallback? onDragStart;
+  final VoidCallback? onDragEnd;
 
   const PlayingCard({
     super.key,
@@ -18,7 +20,9 @@ class PlayingCard extends StatefulWidget {
     required this.rank,
     required this.snapAreas,
     this.initialSnapAreaIndex = 0,
+    this.onSnapToArea,
     this.onDragStart,
+    this.onDragEnd,
   });
 
   @override
@@ -28,6 +32,7 @@ class PlayingCard extends StatefulWidget {
 class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin {
   late Offset position;
   int? currentSnapAreaIndex;
+  int? dragStartSnapAreaIndex; // Track which area drag started from
   late AnimationController _flipController;
   late AnimationController _rotationController;
   late Animation<double> _flipAnimation;
@@ -185,6 +190,14 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       _targetRotation = (_random.nextDouble() - 0.5) * 2 * maxRadians;
       _rotationController.forward(from: 0);
     });
+
+    // Only trigger callback if card moved from one area to another
+    if (dragStartSnapAreaIndex != null && dragStartSnapAreaIndex != nearestAreaIndex) {
+      widget.onSnapToArea?.call(nearestAreaIndex);
+    }
+    
+    // Reset drag start area
+    dragStartSnapAreaIndex = null;
   }
 
   void _flipCard() {
@@ -214,6 +227,9 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       child: GestureDetector(
         onPanStart: (details) {
           _startRandomRotation();
+          // Record which snap area we started dragging from
+          dragStartSnapAreaIndex = currentSnapAreaIndex;
+          // Notify that drag started (brings card to front during drag)
           widget.onDragStart?.call();
         },
         onPanUpdate: (details) {
@@ -225,8 +241,14 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
             _updateSnapArea(position);
           });
         },
-        onPanEnd: (details) => _snapToNearestArea(),
-        onPanCancel: () => _stopRandomRotation(),
+        onPanEnd: (details) {
+          _snapToNearestArea();
+          widget.onDragEnd?.call();
+        },
+        onPanCancel: () {
+          _stopRandomRotation();
+          widget.onDragEnd?.call();
+        },
         onTap: _flipCard,
         child: Transform(
           alignment: Alignment.center,
@@ -247,8 +269,8 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
                     image: DecorationImage(
                       image: AssetImage(
                         _isFrontVisible
-                            ? 'assets/cards/${widget.suit}/${widget.suit}-${widget.rank}.png'
-                            : 'assets/cards/back.png',
+                            ? context.assetsConfig.cards.getCardPath(widget.suit, widget.rank)
+                            : context.assetsConfig.cards.backCardPath,
                       ),
                       fit: BoxFit.cover,
                     ),

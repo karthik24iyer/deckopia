@@ -1,4 +1,5 @@
 import 'package:deckopia/util/flip_card.dart';
+import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -6,6 +7,8 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final demoConfig = context.layoutConfig.demo;
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -13,11 +16,11 @@ class SettingsScreen extends StatelessWidget {
       body: Center(
         child: FlipCard(
           front: Container(
-            width: 200,
-            height: 300,
+            width: demoConfig.cardWidth,
+            height: demoConfig.cardHeight,
             decoration: BoxDecoration(
               color: Colors.red,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(demoConfig.cardBorderRadius),
             ),
             child: const Center(
               child: Text(
@@ -27,11 +30,11 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           back: Container(
-            width: 200,
-            height: 300,
+            width: demoConfig.cardWidth,
+            height: demoConfig.cardHeight,
             decoration: BoxDecoration(
               color: Colors.blue,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(demoConfig.cardBorderRadius),
             ),
             child: const Center(
               child: Text(

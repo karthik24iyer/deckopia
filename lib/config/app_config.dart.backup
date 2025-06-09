@@ -11,6 +11,78 @@ Color parseColor(String hexColor) {
   return Color(int.parse('0xFF$hexColor'));
 }
 
+// Asset configurations
+class CardAssets {
+  final String basePath;
+  final String backCardPath;
+  final String cardTemplate;
+
+  CardAssets.fromJson(Map<String, dynamic> json)
+      : basePath = json['basePath'],
+        backCardPath = json['backCardPath'],
+        cardTemplate = json['cardTemplate'];
+
+  String getCardPath(String suit, String rank) {
+    return cardTemplate.replaceAll('{suit}', suit).replaceAll('{rank}', rank);
+  }
+}
+
+class MetadataAssets {
+  final String actionsPath;
+
+  MetadataAssets.fromJson(Map<String, dynamic> json)
+      : actionsPath = json['actionsPath'];
+}
+
+class ImageAssets {
+  final String homeBackground;
+
+  ImageAssets.fromJson(Map<String, dynamic> json)
+      : homeBackground = json['homeBackground'];
+}
+
+class AssetsConfig {
+  final CardAssets cards;
+  final MetadataAssets metadata;
+  final ImageAssets images;
+
+  AssetsConfig.fromJson(Map<String, dynamic> json)
+      : cards = CardAssets.fromJson(json['cards']),
+        metadata = MetadataAssets.fromJson(json['metadata']),
+        images = ImageAssets.fromJson(json['images']);
+}
+
+// Deck configurations
+class DeckJokers {
+  final List<String> colors;
+  final bool includeByDefault;
+
+  DeckJokers.fromJson(Map<String, dynamic> json)
+      : colors = List<String>.from(json['colors']),
+        includeByDefault = json['includeByDefault'];
+}
+
+class DeckConfig {
+  final int cardsPerDeck;
+  final DeckJokers jokers;
+
+  DeckConfig.fromJson(Map<String, dynamic> json)
+      : cardsPerDeck = json['cardsPerDeck'],
+        jokers = DeckJokers.fromJson(json['jokers']);
+}
+
+// Player configurations
+class PlayerConfig {
+  final int nameLength;
+  final List<Color> colorOptions;
+
+  PlayerConfig.fromJson(Map<String, dynamic> json)
+      : nameLength = json['nameLength'],
+        colorOptions = (json['colorOptions'] as List)
+            .map((colorHex) => parseColor(colorHex))
+            .toList();
+}
+
 // Card-specific configurations
 class CardDimensions {
   final double width;
@@ -139,13 +211,39 @@ class BoardLayout {
         centerSpacing = json['centerSpacing'].toDouble();
 }
 
+class UILayout {
+  final double boxWidth;
+  final double boxHeight;
+  final double menuWidth;
+
+  UILayout.fromJson(Map<String, dynamic> json)
+      : boxWidth = json['boxWidth'].toDouble(),
+        boxHeight = json['boxHeight'].toDouble(),
+        menuWidth = json['menuWidth'].toDouble();
+}
+
+class DemoLayout {
+  final double cardWidth;
+  final double cardHeight;
+  final double cardBorderRadius;
+
+  DemoLayout.fromJson(Map<String, dynamic> json)
+      : cardWidth = json['cardWidth'].toDouble(),
+        cardHeight = json['cardHeight'].toDouble(),
+        cardBorderRadius = json['cardBorderRadius'].toDouble();
+}
+
 class LayoutConfig {
   final LayoutContainers containers;
   final BoardLayout board;
+  final UILayout ui;
+  final DemoLayout demo;
 
   LayoutConfig.fromJson(Map<String, dynamic> json)
       : containers = LayoutContainers.fromJson(json['containers']),
-        board = BoardLayout.fromJson(json['board']);
+        board = BoardLayout.fromJson(json['board']),
+        ui = UILayout.fromJson(json['ui']),
+        demo = DemoLayout.fromJson(json['demo']);
 }
 
 // Snap area configurations
@@ -172,7 +270,6 @@ class SnapConfig {
 }
 
 // App configurations
-
 class AppTheme {
   final Color primaryColor;
   final Color backgroundColor;
@@ -278,11 +375,20 @@ class DialogConfig {
 }
 
 // Animation configurations
+class FlipCardAnimation {
+  final Duration duration;
+
+  FlipCardAnimation.fromJson(Map<String, dynamic> json)
+      : duration = Duration(milliseconds: json['durationMs']);
+}
+
 class AnimationConfig {
   final int pageTransitionDuration;
+  final FlipCardAnimation flipCard;
 
   AnimationConfig.fromJson(Map<String, dynamic> json)
-      : pageTransitionDuration = json['pageTransition']['duration'];
+      : pageTransitionDuration = json['pageTransition']['duration'],
+        flipCard = FlipCardAnimation.fromJson(json['flipCard']);
 }
 
 // Spacing configurations
@@ -391,17 +497,44 @@ class BoardConfig {
 }
 
 // Game configurations
+class OtpConfig {
+  final int length;
+  final String mockValue;
+  final int delayMs;
+
+  OtpConfig.fromJson(Map<String, dynamic> json)
+      : length = json['length'],
+        mockValue = json['mockValue'],
+        delayMs = json['delayMs'];
+}
+
 class GameConfig {
-  final String mockOTP;
-  final int otpDelay;
+  final OtpConfig otp;
 
   GameConfig.fromJson(Map<String, dynamic> json)
-      : mockOTP = json['mockOTP'],
-        otpDelay = json['otpDelay'];
+      : otp = OtpConfig.fromJson(json['otp']);
+
+  // Legacy getters for backward compatibility
+  String get mockOTP => otp.mockValue;
+  int get otpDelay => otp.delayMs;
+}
+
+class AppFonts {
+  final String fontFamily;
+  final double titleSize;
+  final double buttonTextSize;
+
+  AppFonts.fromJson(Map<String, dynamic> json)
+      : fontFamily = json['fontFamily'],
+        titleSize = json['titleSize'].toDouble(),
+        buttonTextSize = json['buttonTextSize'].toDouble();
 }
 
 // Main configuration class
 class Config {
+  final AssetsConfig assets;
+  final DeckConfig deck;
+  final PlayerConfig player;
   final CardConfig card;
   final LayoutConfig layout;
   final SnapConfig snapArea;
@@ -417,7 +550,10 @@ class Config {
   final GameConfig game;
 
   Config.fromJson(Map<String, dynamic> json)
-      : card = CardConfig.fromJson(json['card']),
+      : assets = AssetsConfig.fromJson(json['assets']),
+        deck = DeckConfig.fromJson(json['deck']),
+        player = PlayerConfig.fromJson(json['player']),
+        card = CardConfig.fromJson(json['card']),
         layout = LayoutConfig.fromJson(json['layout']),
         snapArea = SnapConfig.fromJson(json['snapArea']),
         app = AppConfig.fromJson(json['app']),
@@ -437,15 +573,4 @@ class Config {
     final jsonMap = json.decode(jsonString);
     return Config.fromJson(jsonMap);
   }
-}
-
-class AppFonts {
-  final String fontFamily;
-  final double titleSize;
-  final double buttonTextSize;
-
-  AppFonts.fromJson(Map<String, dynamic> json)
-      : fontFamily = json['fontFamily'],
-        titleSize = json['titleSize'].toDouble(),
-        buttonTextSize = json['buttonTextSize'].toDouble();
 }

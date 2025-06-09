@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:deckopia/util/config_provider.dart';
 
-import '../config/app_config.dart';
+import '../config/config.dart';
 
 // Mock API service
 class GameService {

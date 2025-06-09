@@ -1,4 +1,17 @@
 {
+  "assets": {
+    "cards": {
+      "basePath": "assets/cards",
+      "backCardPath": "assets/cards/back.png",
+      "cardTemplate": "assets/cards/{suit}/{suit}-{rank}.png"
+    },
+    "metadata": {
+      "actionsPath": "metadata/actions.json"
+    },
+    "images": {
+      "homeBackground": "assets/images/home_background.png"
+    }
+  },
   "card": {
     "dimensions": {
       "width": 160.0,
@@ -42,6 +55,25 @@
       "rotation": 0.0
     }
   },
+  "deck": {
+    "cardsPerDeck": 52,
+    "jokers": {
+      "colors": ["red", "black"],
+      "includeByDefault": false
+    }
+  },  "player": {
+    "nameLength": 6,
+    "colorOptions": [
+      "#FFCDD2",
+      "#BBDEFB", 
+      "#E1BEE7",
+      "#FFCC80",
+      "#F8BBD0",
+      "#C8E6C9",
+      "#FFF9C4",
+      "#BCAAA4"
+    ]
+  },
   "layout": {
     "containers": {
       "width": 260.0,
@@ -52,6 +84,16 @@
       "horizontalPadding": 20.0,
       "verticalPadding": 50.0,
       "centerSpacing": 80.0
+    },
+    "ui": {
+      "boxWidth": 101.0,
+      "boxHeight": 55.0,
+      "menuWidth": 101.0
+    },
+    "demo": {
+      "cardWidth": 200.0,
+      "cardHeight": 300.0,
+      "cardBorderRadius": 10.0
     }
   },
   "snapArea": {
@@ -62,8 +104,7 @@
       "labelPadding": 8.0,
       "borderOpacity": 0.01
     }
-  },
-  "app": {
+  },  "app": {
     "theme": {
       "primaryColor": "#2196F3",
       "backgroundColor": "#f8f1ee",
@@ -107,10 +148,12 @@
       "retryColor": "#90CAF9",
       "exitColor": "#EF9A9A"
     }
-  },
-  "animations": {
+  },  "animations": {
     "pageTransition": {
       "duration": 200
+    },
+    "flipCard": {
+      "durationMs": 800
     }
   },
   "spacing": {
@@ -145,8 +188,7 @@
     "segmentLength": 20.0,
     "numberOfPoints": 20,
     "randomOffset": 0.9
-  },
-  "board": {
+  },  "board": {
     "stackOffset": 0.0,
     "snapAreaSizes": {
       "upperWidthFactor": 0.5,
@@ -159,7 +201,10 @@
     }
   },
   "game": {
-    "mockOTP": "1234",
-    "otpDelay": 1000
+    "otp": {
+      "length": 4,
+      "mockValue": "1234",
+      "delayMs": 1000
+    }
   }
 }

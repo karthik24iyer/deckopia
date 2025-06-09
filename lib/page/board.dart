@@ -15,20 +15,32 @@ class BoardScreen extends StatefulWidget {
 
 class _BoardScreenState extends State<BoardScreen> {
   final _random = math.Random();
-  late List<PlayingCardModel> deckCards;
+  List<PlayingCardModel> deckCards = [];
   final Map<String, Offset> initialPositions = {};
   final Map<String, double> initialRotations = {};
-  late List<String> cardOrder;
+  List<String> cardOrder = [];
+  String? currentlyDraggingCard; // Track which card is being dragged
 
   @override
   void initState() {
     super.initState();
-    // Generate all cards
-    deckCards = PlayingCardModel.generateDeck(includeJokers: false);
-    // Shuffle the deck
-    _shuffleDeck();
-    // Initialize card order with all card IDs
-    cardOrder = deckCards.map((card) => card.id).toList();
+    // Generate all cards - we'll initialize them after config is available
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Generate deck with configuration if not already done
+    if (deckCards.isEmpty) {
+      deckCards = PlayingCardModel.generateDeck(
+        includeJokers: false,
+        deckConfig: context.deckConfig,
+      );
+      // Shuffle the deck
+      _shuffleDeck();
+      // Initialize card order with all card IDs
+      cardOrder = deckCards.map((card) => card.id).toList();
+    }
   }
 
   void _shuffleDeck() {
@@ -40,6 +52,29 @@ class _BoardScreenState extends State<BoardScreen> {
       cardOrder.remove(cardId);
       cardOrder.add(cardId);
     });
+  }
+
+  void _startDragging(String cardId) {
+    setState(() {
+      currentlyDraggingCard = cardId;
+    });
+  }
+
+  void _stopDragging() {
+    setState(() {
+      currentlyDraggingCard = null;
+    });
+  }
+
+  // Get card order with currently dragging card on top
+  List<String> get _renderOrder {
+    if (currentlyDraggingCard != null) {
+      List<String> tempOrder = List.from(cardOrder);
+      tempOrder.remove(currentlyDraggingCard);
+      tempOrder.add(currentlyDraggingCard!);
+      return tempOrder;
+    }
+    return cardOrder;
   }
 
   Offset _getStackedPosition(SnapAreaConfig snapArea, Size cardSize, int index) {
@@ -147,8 +182,8 @@ class _BoardScreenState extends State<BoardScreen> {
                 label: '',
               ),
 
-              // Cards
-              ...cardOrder.map((cardId) {
+              // Cards (with dragging card on top)
+              ..._renderOrder.map((cardId) {
                 final card = deckCards.firstWhere((c) => c.id == cardId);
                 final cardMap = card.toMap();
 
@@ -158,7 +193,13 @@ class _BoardScreenState extends State<BoardScreen> {
                   rank: cardMap['rank']!,
                   snapAreas: [topLeftArea, topRightArea, bottomArea],
                   initialSnapAreaIndex: 0,
-                  onDragStart: () => _bringCardToFront(cardId),
+                  onSnapToArea: (snapAreaIndex) {
+                    // Bring card to front when moved between different areas
+                    // This callback only triggers when start area != end area
+                    _bringCardToFront(cardId);
+                  },
+                  onDragStart: () => _startDragging(cardId),
+                  onDragEnd: () => _stopDragging(),
                 );
               }).toList(),
             ],

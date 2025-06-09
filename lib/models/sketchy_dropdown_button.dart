@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:deckopia/helper/sketchy_painter.dart';
 import 'package:deckopia/util/config_provider.dart';
-import 'package:deckopia/config/app_config.dart';
+import 'package:deckopia/config/config.dart';
 import 'dart:math' show Random;
 
 class SketchyDropdownMenuItem<T> extends DropdownMenuItem<T> {

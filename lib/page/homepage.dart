@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
               },
               blendMode: BlendMode.dstIn,
               child: Image.asset(
-                'assets/images/home_background.png',
+                context.assetsConfig.images.homeBackground,
                 fit: BoxFit.cover,
                 opacity: AlwaysStoppedAnimation(backgroundConfig.imageOpacity),
               ),

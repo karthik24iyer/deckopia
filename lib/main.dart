@@ -6,7 +6,7 @@ import 'package:deckopia/page/settings.dart';
 import 'package:deckopia/util/config_provider.dart';
 import 'package:flutter/material.dart';
 
-import 'config/app_config.dart';
+import 'config/config.dart';
 import 'page/homepage.dart';
 
 void main() async {

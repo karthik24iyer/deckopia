@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../config/app_config.dart';
+import '../config/config.dart';
 
 class ConfigProvider extends InheritedWidget {
   final Config config;
@@ -25,10 +25,14 @@ class ConfigProvider extends InheritedWidget {
 
 extension ConfigProviderExtension on BuildContext {
   Config get config => ConfigProvider.of(this);
+  AssetsConfig get assetsConfig => config.assets;
+  DeckConfig get deckConfig => config.deck;
+  PlayerConfig get playerConfig => config.player;
   CardConfig get cardConfig => config.card;
   LayoutConfig get layoutConfig => config.layout;
   SnapConfig get snapAreaConfig => config.snapArea;
   AppConfig get appConfig => config.app;
+  GameConfig get gameConfig => config.game;
   
   Config? tryReadConfig() {
     final provider = dependOnInheritedWidgetOfExactType<ConfigProvider>();

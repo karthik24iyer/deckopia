@@ -1,3 +1,5 @@
+import '../config/config.dart';
+
 enum CardSuit {
   spade,
   heart,
@@ -65,7 +67,7 @@ class PlayingCardModel {
     'rank': isJoker ? jokerColor : rank!.asString,
   };
 
-  static List<PlayingCardModel> generateDeck({bool includeJokers = false}) {
+  static List<PlayingCardModel> generateDeck({bool includeJokers = false, DeckConfig? deckConfig}) {
     List<PlayingCardModel> deck = [];
 
     // Add standard cards
@@ -76,7 +78,17 @@ class PlayingCardModel {
     }
 
     // Add jokers if requested
-    if (includeJokers) {
+    bool shouldIncludeJokers = includeJokers;
+    if (deckConfig != null) {
+      shouldIncludeJokers = includeJokers || deckConfig.jokers.includeByDefault;
+    }
+    
+    if (shouldIncludeJokers && deckConfig != null) {
+      for (var color in deckConfig.jokers.colors) {
+        deck.add(PlayingCardModel(isJoker: true, jokerColor: color));
+      }
+    } else if (shouldIncludeJokers) {
+      // Fallback for when no config is provided
       deck.add(PlayingCardModel(isJoker: true, jokerColor: 'red'));
       deck.add(PlayingCardModel(isJoker: true, jokerColor: 'black'));
     }

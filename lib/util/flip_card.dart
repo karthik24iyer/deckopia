@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:deckopia/util/config_provider.dart';
 import 'dart:math' as math;
 
 class FlipCard extends StatefulWidget {
   final Widget front;
   final Widget back;
   final Function(bool)? onFlipDone;
+  final Duration? customDuration;
 
   const FlipCard({
     Key? key,
     required this.front,
     required this.back,
     this.onFlipDone,
+    this.customDuration,
   }) : super(key: key);
 
   @override
@@ -25,11 +28,22 @@ class FlipCardState extends State<FlipCard> with SingleTickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
+    _controller = AnimationController(vsync: this);
+    _setupAnimation();
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateDuration();
+  }
+
+  void _updateDuration() {
+    final duration = widget.customDuration ?? context.config.animations.flipCard.duration;
+    _controller.duration = duration;
+  }
+
+  void _setupAnimation() {
     _animation = Tween<double>(
       begin: 0,
       end: math.pi,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-import '../config/app_config.dart';
+import '../config/config.dart';
 
 class SketchyButtonPainter extends CustomPainter {
   final Color color;

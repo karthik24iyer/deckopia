@@ -18,20 +18,20 @@ class JoinGameScreen extends StatefulWidget {
 class _JoinGameScreenState extends State<JoinGameScreen> {
   GameService? _gameService;
   bool _isLoading = false;
-  final List<TextEditingController> _controllers = List.generate(
-    4,
-        (index) => TextEditingController(),
-  );
-
-  final List<FocusNode> _focusNodes = List.generate(
-    4,
-        (index) => FocusNode(),
-  );
+  List<TextEditingController> _controllers = [];
+  List<FocusNode> _focusNodes = [];
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _gameService ??= GameService(context.config.game);
+    
+    // Initialize controllers and focus nodes based on config
+    final otpLength = context.gameConfig.otp.length;
+    if (_controllers.isEmpty) {
+      _controllers = List.generate(otpLength, (index) => TextEditingController());
+      _focusNodes = List.generate(otpLength, (index) => FocusNode());
+    }
   }
 
   @override
@@ -71,8 +71,9 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
 
   Future<void> _verifyAndNavigate() async {
     String otp = _controllers.map((controller) => controller.text).join();
+    final otpLength = context.gameConfig.otp.length;
 
-    if (otp.length != 4) {
+    if (otp.length != otpLength) {
       _showErrorDialog();
       return;
     }

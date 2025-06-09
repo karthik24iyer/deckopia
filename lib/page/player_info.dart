@@ -20,26 +20,25 @@ class PlayerInfoScreen extends StatefulWidget {
 
 class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
   Color? _selectedColor = Colors.grey.shade100;
-  final List<String> _nameChars = List.filled(6, '');
+  List<String> _nameChars = [];
   int _currentCharIndex = 0;
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-
-  final List<Color> _colorOptions = [
-    Colors.red.shade200,
-    Colors.lightBlue.shade200,
-    Colors.purple.shade200,
-    Colors.orange.shade200,
-    Colors.pink.shade200,
-    Colors.green.shade200,
-    Colors.yellow.shade200,
-    Colors.brown.shade200,
-  ];
 
   @override
   void initState() {
     super.initState();
     _textController.addListener(_handleTextChanged);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize name chars based on config
+    final nameLength = context.playerConfig.nameLength;
+    if (_nameChars.isEmpty) {
+      _nameChars = List.filled(nameLength, '');
+    }
   }
 
   @override
@@ -51,16 +50,17 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
 
   void _handleTextChanged() {
     final text = _textController.text.toUpperCase();
+    final nameLength = context.playerConfig.nameLength;
     setState(() {
       _nameChars.fillRange(0, _nameChars.length, '');
-      for (var i = 0; i < math.min(text.length, 6); i++) {
+      for (var i = 0; i < math.min(text.length, nameLength); i++) {
         _nameChars[i] = text[i];
       }
       _currentCharIndex = text.length;
     });
   }
 
-  bool get _isNameComplete => _currentCharIndex == 6;
+  bool get _isNameComplete => _currentCharIndex == context.playerConfig.nameLength;
 
   void _navigateToBoardScreen() {
     if (_selectedColor != null && _isNameComplete) {
@@ -256,17 +256,17 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                               mainAxisSpacing: size.height * 0.02,
                               childAspectRatio: 1,
                             ),
-                            itemCount: _colorOptions.length,
+                            itemCount: context.playerConfig.colorOptions.length,
                             itemBuilder: (context, index) {
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
-                                    _selectedColor = _colorOptions[index];
+                                    _selectedColor = context.playerConfig.colorOptions[index];
                                   });
                                 },
                                 child: CustomPaint(
                                   painter: SketchyCircle(
-                                    _colorOptions[index],
+                                    context.playerConfig.colorOptions[index],
                                     index + 1,
                                     true,
                                     sketchyConfig,
@@ -284,10 +284,10 @@ class _PlayerInfoScreenState extends State<PlayerInfoScreen> {
                       // GLHF Button
                       SketchyButton(
                         text: 'GLHF',
-                        color: (_colorOptions.contains(_selectedColor) && _isNameComplete)
+                        color: (context.playerConfig.colorOptions.contains(_selectedColor) && _isNameComplete)
                             ? colorConfig.buttonColors.lightBlue
                             : Colors.grey.shade300,
-                        onPressed: (_colorOptions.contains(_selectedColor) && _isNameComplete)
+                        onPressed: (context.playerConfig.colorOptions.contains(_selectedColor) && _isNameComplete)
                             ? _navigateToBoardScreen
                             : null,
                         seed: 5,
