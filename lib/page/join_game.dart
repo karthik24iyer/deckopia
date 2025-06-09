@@ -140,105 +140,105 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                           ),
                         ],
                       ),
+                      child: Text(
+                        'Join Game',
+                        style: TextStyle(
+                          fontSize: appConfig.theme.fonts.titleSize,
+                          fontFamily: appConfig.theme.fonts.fontFamily,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    const SizedBox(width: 48),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: appConfig.theme.backgroundColor.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                         child: Text(
-                          'Join Game',
+                          'We all love OTPs don\'t we :)',
                           style: TextStyle(
-                            fontSize: appConfig.theme.fonts.titleSize,
+                            fontSize: appConfig.theme.fonts.buttonTextSize,
                             fontFamily: appConfig.theme.fonts.fontFamily,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
-                      const Spacer(),
-                      const SizedBox(width: 48),
+                      const SizedBox(height: 40),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          context.gameConfig.otp.length,
+                          (index) => Container(
+                            width: 45,
+                            margin: const EdgeInsets.symmetric(horizontal: 5),
+                            child: TextField(
+                              controller: _controllers[index],
+                              focusNode: _focusNodes[index],
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontFamily: appConfig.theme.fonts.fontFamily,
+                              ),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(1),
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              decoration: InputDecoration(
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.9),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                final otpLength = context.gameConfig.otp.length;
+                                if (value.isNotEmpty && index < otpLength - 1) {
+                                  _focusNodes[index + 1].requestFocus();
+                                } else if (value.isEmpty && index > 0) {
+                                  _focusNodes[index - 1].requestFocus();
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      SketchyButton(
+                        text: 'Join Game',
+                        color: context.config.colors.buttonColors.lightBlue,
+                        onPressed: _verifyAndNavigate,
+                        seed: 1,
+                        width: MediaQuery.of(context).size.width / 2,
+                        isLoading: _isLoading,
+                      ),
                     ],
                   ),
                 ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: appConfig.theme.backgroundColor.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            'We all love OTPs don\'t we :)',
-                            style: TextStyle(
-                              fontSize: appConfig.theme.fonts.buttonTextSize,
-                              fontFamily: appConfig.theme.fonts.fontFamily,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            4,
-                                (index) => Container(
-                              width: 45,
-                              margin: const EdgeInsets.symmetric(horizontal: 5),
-                              child: TextField(
-                                controller: _controllers[index],
-                                focusNode: _focusNodes[index],
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  fontFamily: appConfig.theme.fonts.fontFamily,
-                                ),
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  LengthLimitingTextInputFormatter(1),
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.9),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  if (value.isNotEmpty && index < 3) {
-                                    _focusNodes[index + 1].requestFocus();
-                                  } else if (value.isEmpty && index > 0) {
-                                    _focusNodes[index - 1].requestFocus();
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        SketchyButton(
-                          text: 'Join Game',
-                          color: context.config.colors.buttonColors.lightBlue,
-                          onPressed: _verifyAndNavigate,
-                          seed: 1,
-                          width: MediaQuery.of(context).size.width / 2,
-                          isLoading: _isLoading,
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
