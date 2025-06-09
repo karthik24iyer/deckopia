@@ -148,17 +148,28 @@ class _HostGameScreenState extends State<HostGameScreen> {
   }
 
   Widget _buildTitle() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: _containerDecoration(),
-      child: Text(
-        'Host Game',
-        style: TextStyle(
-          fontSize: context.appConfig.theme.fonts.titleSize,
-          fontWeight: FontWeight.bold,
-          fontFamily: context.appConfig.theme.fonts.fontFamily,
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-      ),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: _containerDecoration(),
+          child: Text(
+            'Host Game',
+            style: TextStyle(
+              fontSize: context.appConfig.theme.fonts.titleSize,
+              fontWeight: FontWeight.bold,
+              fontFamily: context.appConfig.theme.fonts.fontFamily,
+            ),
+          ),
+        ),
+        const Spacer(),
+        const SizedBox(width: 48),
+      ],
     );
   }
 
@@ -207,6 +218,8 @@ class _HostGameScreenState extends State<HostGameScreen> {
             child: Text(option.toString()),
           )).toList(),
         ),
+        // Add spacing to align with Cards input box position
+        SizedBox(width: 75), // Match width of 'full' text + scaled checkbox
       ],
     );
   }
@@ -219,6 +232,7 @@ class _HostGameScreenState extends State<HostGameScreen> {
             Text('Cards', style: _labelStyle()),
             const Spacer(),
             _buildCardsInput(),
+            const SizedBox(width: 12,),
             _buildFullDistributionCheckbox(),
           ],
         ),
@@ -235,7 +249,9 @@ class _HostGameScreenState extends State<HostGameScreen> {
         children: [
           CustomPaint(
             painter: SketchyButtonPainter(
-              context.config.colors.buttonColors.yellow,
+              _fullDistribution 
+                  ? Colors.grey.shade300 
+                  : context.config.colors.buttonColors.yellow,
               50,
               context.config.sketchyButton.noiseMagnitude,
               context.config.sketchyButton.curveNoiseMagnitude,

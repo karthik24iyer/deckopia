@@ -164,12 +164,26 @@ class _JoinGameScreenState extends State<JoinGameScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      Text(
-                        'Join Game',
-                        style: TextStyle(
-                          fontSize: appConfig.theme.fonts.titleSize,
-                          fontFamily: appConfig.theme.fonts.fontFamily,
-                          fontWeight: FontWeight.bold,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: appConfig.theme.backgroundColor.withOpacity(context.config.colors.lightOverlay),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(context.config.sketchyButton.shadow.opacity),
+                              blurRadius: context.config.sketchyButton.shadow.blur * 2,
+                              offset: Offset(context.config.sketchyButton.shadow.offsetX, context.config.sketchyButton.shadow.offsetY * 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'Join Game',
+                          style: TextStyle(
+                            fontSize: appConfig.theme.fonts.titleSize,
+                            fontFamily: appConfig.theme.fonts.fontFamily,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const Spacer(),
