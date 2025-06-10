@@ -1,14 +1,16 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'card_behavior_interfaces.dart';
+import 'game_state_manager.dart';
 
 /// Snap behavior that coordinates between multiple smart snap areas
 class SmartSnapBehavior extends SnapBehavior {
   final List<SmartSnapArea> areas;
+  final GameStateManager gameState;
   final double snapThreshold;
   
   SmartSnapBehavior({
     required this.areas,
+    required this.gameState,
     this.snapThreshold = double.infinity, // No threshold by default
   });
   
@@ -37,8 +39,8 @@ class SmartSnapBehavior extends SnapBehavior {
     
     if (nearestArea == null) return null;
     
-    // Let the area calculate its own snap position
-    final snapPosition = nearestArea.calculateSnapPosition(cardSize, cardId);
+    // Let the area calculate its own snap position (always preview during drag)
+    final snapPosition = nearestArea.calculateSnapPosition(cardSize, cardId, isPreview: true);
     
     return SnapResult(
       snapPosition: snapPosition,
@@ -49,16 +51,35 @@ class SmartSnapBehavior extends SnapBehavior {
   
   @override
   void onCardMoved(String cardId, int? fromAreaIndex, int? toAreaIndex) {
-    // Remove card from old area
+    // Convert area indices to area IDs
+    String? fromAreaId;
+    String? toAreaId;
+    
     if (fromAreaIndex != null) {
-      final fromArea = areas.firstWhere((area) => area.index == fromAreaIndex);
-      fromArea.onCardLeft(cardId);
+      fromAreaId = _getAreaId(fromAreaIndex);
     }
     
-    // Add card to new area
     if (toAreaIndex != null) {
-      final toArea = areas.firstWhere((area) => area.index == toAreaIndex);
-      toArea.onCardSnapped(cardId);
+      toAreaId = _getAreaId(toAreaIndex);
+    }
+    
+    // Update game state
+    if (toAreaId != null) {
+      gameState.moveCard(cardId, fromAreaId, toAreaId);
+    }
+  }
+  
+  /// Convert area index to area ID
+  String _getAreaId(int areaIndex) {
+    switch (areaIndex) {
+      case 0:
+        return GameStateManager.concentricArea0;
+      case 1:
+        return GameStateManager.concentricArea1;
+      case 2:
+        return GameStateManager.horizontalArea2;
+      default:
+        return GameStateManager.concentricArea0;
     }
   }
 }
@@ -72,41 +93,46 @@ class ConcentricStackArea extends SmartSnapArea {
   @override
   bool get allowsRotation => true;
   
-  final List<String> _cards = [];
-  final double stackOffset;
+  final GameStateManager gameState;
   
   ConcentricStackArea({
     required this.index,
     required this.bounds,
-    this.stackOffset = 2.0,
+    required this.gameState,
   });
   
   @override
   void addCard(String cardId) {
-    if (!_cards.contains(cardId)) {
-      _cards.add(cardId);
-    }
+    // State managed externally - no-op
   }
   
   @override
   void removeCard(String cardId) {
-    _cards.remove(cardId);
+    // State managed externally - no-op
   }
   
   @override
-  Offset calculateSnapPosition(Size cardSize, String cardId) {
-    // Cards stack concentrically at center with small offset
-    final center = Offset(
-      bounds.left + (bounds.width - cardSize.width) / 2,
-      bounds.top + (bounds.height - cardSize.height) / 2,
+  Offset calculateSnapPosition(Size cardSize, String cardId, {bool isPreview = false}) {
+    final areaId = _getAreaId();
+    return gameState.calculateCardPosition(
+      cardId, 
+      areaId, 
+      bounds, 
+      cardSize, 
+      isPreview: isPreview,
     );
-    
-    // Add small random offset for visual stacking effect
-    final cardCount = _cards.length;
-    final offsetX = cardCount * stackOffset;
-    final offsetY = cardCount * stackOffset;
-    
-    return Offset(center.dx + offsetX, center.dy + offsetY);
+  }
+  
+  /// Get area ID based on index
+  String _getAreaId() {
+    switch (index) {
+      case 0:
+        return GameStateManager.concentricArea0;
+      case 1:
+        return GameStateManager.concentricArea1;
+      default:
+        return GameStateManager.concentricArea0;
+    }
   }
   
   @override
@@ -128,40 +154,33 @@ class HorizontalStackArea extends SmartSnapArea {
   @override
   bool get allowsRotation => false; // No rotation in bottom area
   
-  final double cardSpacing;
-  final Function() getCardCount; // Get count from external source
+  final GameStateManager gameState;
   
   HorizontalStackArea({
     required this.index,
     required this.bounds,
-    required this.getCardCount,
-    this.cardSpacing = 10.0,
+    required this.gameState,
   });
   
   @override
   void addCard(String cardId) {
-    // External tracking handles this
+    // State managed externally - no-op
   }
   
   @override
   void removeCard(String cardId) {
-    // External tracking handles this
+    // State managed externally - no-op
   }
   
   @override
-  Offset calculateSnapPosition(Size cardSize, String cardId) {
-    // Cards stack horizontally from left edge
-    final leftEdge = bounds.left;
-    final verticalCenter = bounds.top + (bounds.height - cardSize.height) / 2;
-    
-    // Get current card count from external source
-    final cardCount = getCardCount();
-    final horizontalOffset = cardCount * cardSpacing;
-    final position = Offset(leftEdge + horizontalOffset, verticalCenter);
-    
-    print('HorizontalStackArea: calculateSnapPosition - cardCount: $cardCount, offset: $horizontalOffset, position: $position');
-    
-    return position;
+  Offset calculateSnapPosition(Size cardSize, String cardId, {bool isPreview = false}) {
+    return gameState.calculateCardPosition(
+      cardId, 
+      GameStateManager.horizontalArea2, 
+      bounds, 
+      cardSize, 
+      isPreview: isPreview,
+    );
   }
   
   @override
@@ -214,7 +233,7 @@ class GridSnapArea extends SmartSnapArea {
   }
   
   @override
-  Offset calculateSnapPosition(Size cardSize, String cardId) {
+  Offset calculateSnapPosition(Size cardSize, String cardId, {bool isPreview = false}) {
     final position = _findNextAvailablePosition();
     if (position == null) return bounds.center;
     

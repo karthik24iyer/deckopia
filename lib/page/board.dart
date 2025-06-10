@@ -3,7 +3,10 @@ import 'package:deckopia/models/playing_card.dart';
 import 'package:deckopia/util/snap_area.dart';
 import 'package:deckopia/config/snap_area_config.dart';
 import 'package:deckopia/util/config_provider.dart';
-import 'package:deckopia/util/card_config_adapter.dart';
+import 'package:deckopia/models/game_state_manager.dart';
+import 'package:deckopia/models/card_snap_behavior.dart';
+import 'package:deckopia/models/card_behavior_interfaces.dart';
+import 'package:deckopia/models/card_animation_behavior.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -17,16 +20,22 @@ class BoardScreen extends StatefulWidget {
 class _BoardScreenState extends State<BoardScreen> {
   final _random = math.Random();
   List<PlayingCardModel> deckCards = [];
-  final Map<String, Offset> initialPositions = {};
-  final Map<String, double> initialRotations = {};
   List<String> cardOrder = [];
-  String? currentlyDraggingCard; // Track which card is being dragged
-  List<String> bottomAreaCards = []; // Track cards in bottom area
+  String? currentlyDraggingCard;
+  
+  // Persistent state management
+  late GameStateManager gameState;
+  late SmartSnapBehavior snapBehavior;
+  
+  // Snap area configurations (created once)
+  late SnapAreaConfig topLeftArea;
+  late SnapAreaConfig topRightArea;
+  late SnapAreaConfig bottomArea;
 
   @override
   void initState() {
     super.initState();
-    // Generate all cards - we'll initialize them after config is available
+    gameState = GameStateManager();
   }
 
   @override
@@ -86,103 +95,188 @@ class _BoardScreenState extends State<BoardScreen> {
     return cardOrder;
   }
 
-  Offset _getStackedPosition(SnapAreaConfig snapArea, Size cardSize, int index) {
-    // Stack cards with a small offset
-    final stackOffset = context.config.board.stackOffset;
 
-    // Calculate center position within snap area
-    final centerX = snapArea.position.dx + (snapArea.size.width - cardSize.width) / 2;
-    final centerY = snapArea.position.dy + (snapArea.size.height - cardSize.height) / 2;
+  
+  /// Initialize snap areas and behavior once
+  void _initializeSnapAreas(BoxConstraints constraints, Size cardSize) {
+    final boardLayoutConfig = context.layoutConfig.board;
+    final boardConfig = context.config.board;
+    
+    // Get layout constants from config
+    final horizontalPadding = boardLayoutConfig.horizontalPadding;
+    final verticalPadding = boardLayoutConfig.verticalPadding;
+    final centerSpacing = boardLayoutConfig.centerSpacing;
 
-    return Offset(
-      centerX + (stackOffset * index),
-      centerY + (stackOffset * index),
+    // Calculate sizes using factors from config
+    final upperSnapAreaWidth = (constraints.maxWidth - (2 * horizontalPadding) - centerSpacing) * boardConfig.snapAreaSizes.upperWidthFactor;
+    final upperSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.upperHeightFactor;
+    final lowerSnapAreaWidth = constraints.maxWidth * boardConfig.snapAreaSizes.lowerWidthFactor;
+    final lowerSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.lowerHeightFactor;
+    
+    // Create snap area configurations
+    topLeftArea = SnapAreaConfig(
+      size: Size(upperSnapAreaWidth, upperSnapAreaHeight),
+      position: Offset(horizontalPadding, verticalPadding),
+    );
+
+    topRightArea = SnapAreaConfig(
+      size: Size(upperSnapAreaWidth, upperSnapAreaHeight),
+      position: Offset(
+        horizontalPadding + upperSnapAreaWidth + centerSpacing,
+        verticalPadding,
+      ),
+    );
+
+    bottomArea = SnapAreaConfig(
+      size: Size(lowerSnapAreaWidth, lowerSnapAreaHeight),
+      position: Offset(
+        (constraints.maxWidth - lowerSnapAreaWidth) / 2,
+        constraints.maxHeight - lowerSnapAreaHeight - verticalPadding,
+      ),
+    );
+    
+    // Create persistent smart areas
+    final areas = [
+      ConcentricStackArea(
+        index: 0,
+        bounds: Rect.fromLTWH(
+          topLeftArea.position.dx,
+          topLeftArea.position.dy,
+          topLeftArea.size.width,
+          topLeftArea.size.height,
+        ),
+        gameState: gameState,
+      ),
+      ConcentricStackArea(
+        index: 1,
+        bounds: Rect.fromLTWH(
+          topRightArea.position.dx,
+          topRightArea.position.dy,
+          topRightArea.size.width,
+          topRightArea.size.height,
+        ),
+        gameState: gameState,
+      ),
+      HorizontalStackArea(
+        index: 2,
+        bounds: Rect.fromLTWH(
+          bottomArea.position.dx,
+          bottomArea.position.dy,
+          bottomArea.size.width,
+          bottomArea.size.height,
+        ),
+        gameState: gameState,
+      ),
+    ];
+    
+    // Create persistent snap behavior
+    snapBehavior = SmartSnapBehavior(areas: areas, gameState: gameState);
+  }
+  
+  /// Create render configuration for a card
+  CardRenderConfig _createRenderConfig(String suit, String rank) {
+    final cardConfig = context.cardConfig;
+    final assetsConfig = context.assetsConfig;
+    
+    return CardRenderConfig(
+      cardSize: Size(
+        cardConfig.dimensions.width,
+        cardConfig.dimensions.width * cardConfig.dimensions.aspectRatio,
+      ),
+      borderRadius: cardConfig.dimensions.borderRadius,
+      frontImagePath: assetsConfig.cards.getCardPath(suit, rank),
+      backImagePath: assetsConfig.cards.backCardPath,
+      initiallyFaceUp: cardConfig.initial.isFaceUp,
+      initialRotation: cardConfig.initial.rotation,
+      shadowColor: null,
+      shadowBlur: 0,
+      shadowOffset: Offset.zero,
     );
   }
-
-  double _getRandomRotation() {
-    // Smaller rotation range for stacked cards
-    return (_random.nextDouble() - 0.5) * 2 * context.config.board.rotation.maxRadians;
+  
+  /// Create animation behavior
+  CardAnimationBehavior _createAnimationBehavior() {
+    final cardConfig = context.cardConfig;
+    
+    return DefaultCardAnimationBehavior(
+      flipDuration: cardConfig.animation.flipDuration,
+      rotationDuration: cardConfig.animation.rotationTransitionDuration,
+      maxRotationDegrees: cardConfig.animation.maxRotationDegrees,
+      rotationUpdateInterval: cardConfig.animation.rotationUpdateInterval,
+    );
   }
   
-  int _getBottomAreaCardCount() {
-    return bottomAreaCards.length;
+  /// Calculate initial position for a card using game state
+  Offset _calculateInitialPosition(String cardId, Size cardSize) {
+    final currentArea = gameState.getCardArea(cardId) ?? GameStateManager.concentricArea0;
+    
+    Rect areaBounds;
+    switch (currentArea) {
+      case GameStateManager.concentricArea0:
+        areaBounds = Rect.fromLTWH(
+          topLeftArea.position.dx,
+          topLeftArea.position.dy,
+          topLeftArea.size.width,
+          topLeftArea.size.height,
+        );
+        break;
+      case GameStateManager.concentricArea1:
+        areaBounds = Rect.fromLTWH(
+          topRightArea.position.dx,
+          topRightArea.position.dy,
+          topRightArea.size.width,
+          topRightArea.size.height,
+        );
+        break;
+      case GameStateManager.horizontalArea2:
+        areaBounds = Rect.fromLTWH(
+          bottomArea.position.dx,
+          bottomArea.position.dy,
+          bottomArea.size.width,
+          bottomArea.size.height,
+        );
+        break;
+      default:
+        areaBounds = Rect.fromLTWH(
+          topLeftArea.position.dx,
+          topLeftArea.position.dy,
+          topLeftArea.size.width,
+          topLeftArea.size.height,
+        );
+    }
+    
+    return gameState.calculateCardPosition(cardId, currentArea, areaBounds, cardSize);
   }
   
-  void _updateBottomAreaCards(String cardId, int? snapAreaIndex) {
-    setState(() {
-      // Remove card from bottom area list if it was there
-      bottomAreaCards.remove(cardId);
-      
-      // Add card to bottom area if it snapped there
-      if (snapAreaIndex == 2) {
-        bottomAreaCards.add(cardId);
-      }
-    });
-  }
   
 
   @override
   Widget build(BuildContext context) {
     final cardConfig = context.cardConfig;
-    final boardLayoutConfig = context.layoutConfig.board;
-    final boardConfig = context.config.board;
     final backgroundConfig = context.config.background;
     
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
-          // Get layout constants from config
-          final horizontalPadding = boardLayoutConfig.horizontalPadding;
-          final verticalPadding = boardLayoutConfig.verticalPadding;
-          final centerSpacing = boardLayoutConfig.centerSpacing;
-
-          // Calculate sizes using factors from config
-          final upperSnapAreaWidth = (constraints.maxWidth - (2 * horizontalPadding) - centerSpacing) * boardConfig.snapAreaSizes.upperWidthFactor;
-          final upperSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.upperHeightFactor;
-          final lowerSnapAreaWidth = constraints.maxWidth * boardConfig.snapAreaSizes.lowerWidthFactor;
-          final lowerSnapAreaHeight = constraints.maxHeight * boardConfig.snapAreaSizes.lowerHeightFactor;
           final cardSize = Size(
             cardConfig.dimensions.width,
             cardConfig.dimensions.width * cardConfig.dimensions.aspectRatio
           );
 
-          // Upper left snap area
-          final topLeftArea = SnapAreaConfig(
-            size: Size(upperSnapAreaWidth, upperSnapAreaHeight),
-            position: Offset(
-              horizontalPadding,
-              verticalPadding,
-            ),
-          );
 
-          // Upper right snap area
-          final topRightArea = SnapAreaConfig(
-            size: Size(upperSnapAreaWidth, upperSnapAreaHeight),
-            position: Offset(
-              horizontalPadding + upperSnapAreaWidth + centerSpacing,
-              verticalPadding,
-            ),
-          );
-
-          // Bottom area
-          final bottomArea = SnapAreaConfig(
-            size: Size(lowerSnapAreaWidth, lowerSnapAreaHeight),
-            position: Offset(
-              (constraints.maxWidth - lowerSnapAreaWidth) / 2,
-              constraints.maxHeight - lowerSnapAreaHeight - verticalPadding,
-            ),
-          );
-
-          // Initialize positions for all cards in the top left area
-          for (var i = 0; i < deckCards.length; i++) {
-            var card = deckCards[i];
-            initialPositions[card.id] = _getStackedPosition(topLeftArea, cardSize, i);
-            initialRotations[card.id] = _getRandomRotation();
+          // Initialize snap areas once
+          _initializeSnapAreas(constraints, cardSize);
+          
+          // Initialize game state with all cards
+          if (gameState.getCardCountInArea(GameStateManager.concentricArea0) == 0) {
+            final cardIds = deckCards.map((card) => card.id).toList();
+            gameState.initializeCards(cardIds);
           }
 
-          return Stack(
-            children: [
+          return ListenableBuilder(
+            listenable: gameState,
+            builder: (context, child) => Stack(
+              children: [
               // Background color or pattern
               Container(
                 decoration: BoxDecoration(
@@ -212,36 +306,19 @@ class _BoardScreenState extends State<BoardScreen> {
               ..._renderOrder.map((cardId) {
                 final card = deckCards.firstWhere((c) => c.id == cardId);
                 final cardMap = card.toMap();
-                final cardIndex = deckCards.indexOf(card);
 
                 return PlayingCard(
                   key: ValueKey(cardId),
                   cardId: cardId,
                   suit: cardMap['suit']!,
                   rank: cardMap['rank']!,
-                  renderConfig: CardConfigAdapter.createRenderConfig(
-                    context, 
-                    cardMap['suit']!, 
-                    cardMap['rank']!
-                  ),
-                  snapBehavior: CardConfigAdapter.createSnapBehavior(
-                    [topLeftArea, topRightArea, bottomArea],
-                    getBottomAreaCardCount: _getBottomAreaCardCount,
-                  ),
-                  animationBehavior: CardConfigAdapter.createAnimationBehavior(context),
-                  initialPosition: CardConfigAdapter.calculateInitialPosition(
-                    topLeftArea,
-                    Size(
-                      context.cardConfig.dimensions.width,
-                      context.cardConfig.dimensions.width * context.cardConfig.dimensions.aspectRatio
-                    ),
-                    cardIndex,
-                    context.config.board.stackOffset,
-                  ),
+                  renderConfig: _createRenderConfig(cardMap['suit']!, cardMap['rank']!),
+                  snapBehavior: snapBehavior,
+                  animationBehavior: _createAnimationBehavior(),
+                  initialPosition: _calculateInitialPosition(cardId, cardSize),
                   initiallyFaceUp: false,
-                  callbacks: CardConfigAdapter.createCallbacks(
-                    onSnapToArea: (snapAreaIndex) {
-                      _updateBottomAreaCards(cardId, snapAreaIndex);
+                  callbacks: CardInteractionCallbacks(
+                    onSnapAreaChanged: (snapAreaIndex) {
                       _bringCardToFront(cardId);
                     },
                     onDragStart: () => _startDragging(cardId),
@@ -249,7 +326,8 @@ class _BoardScreenState extends State<BoardScreen> {
                   ),
                 );
               }).toList(),
-            ],
+              ],
+            ),
           );
         },
       ),

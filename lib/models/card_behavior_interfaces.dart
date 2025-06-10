@@ -41,7 +41,8 @@ abstract class SmartSnapArea {
   void removeCard(String cardId);
   
   /// Calculate position for a new card being snapped to this area
-  Offset calculateSnapPosition(Size cardSize, String cardId);
+  /// isPreview: true when calculating position during drag (preview), false when finalizing position
+  Offset calculateSnapPosition(Size cardSize, String cardId, {bool isPreview = false});
   
   /// Check if a position is within this snap area
   bool containsPosition(Offset position, Size cardSize);
