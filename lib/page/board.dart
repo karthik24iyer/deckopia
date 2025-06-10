@@ -3,6 +3,7 @@ import 'package:deckopia/models/playing_card.dart';
 import 'package:deckopia/util/snap_area.dart';
 import 'package:deckopia/config/snap_area_config.dart';
 import 'package:deckopia/util/config_provider.dart';
+import 'package:deckopia/util/card_config_adapter.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -20,6 +21,7 @@ class _BoardScreenState extends State<BoardScreen> {
   final Map<String, double> initialRotations = {};
   List<String> cardOrder = [];
   String? currentlyDraggingCard; // Track which card is being dragged
+  List<String> bottomAreaCards = []; // Track cards in bottom area
 
   @override
   void initState() {
@@ -32,14 +34,21 @@ class _BoardScreenState extends State<BoardScreen> {
     super.didChangeDependencies();
     // Generate deck with configuration if not already done
     if (deckCards.isEmpty) {
-      deckCards = PlayingCardModel.generateDeck(
-        includeJokers: false,
-        deckConfig: context.deckConfig,
-      );
-      // Shuffle the deck
-      _shuffleDeck();
-      // Initialize card order with all card IDs
-      cardOrder = deckCards.map((card) => card.id).toList();
+      // Defer heavy operations to next frame to avoid blocking initial render
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            deckCards = PlayingCardModel.generateDeck(
+              includeJokers: false,
+              deckConfig: context.deckConfig,
+            );
+            // Shuffle the deck
+            _shuffleDeck();
+            // Initialize card order with all card IDs
+            cardOrder = deckCards.map((card) => card.id).toList();
+          });
+        }
+      });
     }
   }
 
@@ -95,6 +104,23 @@ class _BoardScreenState extends State<BoardScreen> {
     // Smaller rotation range for stacked cards
     return (_random.nextDouble() - 0.5) * 2 * context.config.board.rotation.maxRadians;
   }
+  
+  int _getBottomAreaCardCount() {
+    return bottomAreaCards.length;
+  }
+  
+  void _updateBottomAreaCards(String cardId, int? snapAreaIndex) {
+    setState(() {
+      // Remove card from bottom area list if it was there
+      bottomAreaCards.remove(cardId);
+      
+      // Add card to bottom area if it snapped there
+      if (snapAreaIndex == 2) {
+        bottomAreaCards.add(cardId);
+      }
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -186,20 +212,41 @@ class _BoardScreenState extends State<BoardScreen> {
               ..._renderOrder.map((cardId) {
                 final card = deckCards.firstWhere((c) => c.id == cardId);
                 final cardMap = card.toMap();
+                final cardIndex = deckCards.indexOf(card);
 
                 return PlayingCard(
                   key: ValueKey(cardId),
+                  cardId: cardId,
                   suit: cardMap['suit']!,
                   rank: cardMap['rank']!,
-                  snapAreas: [topLeftArea, topRightArea, bottomArea],
-                  initialSnapAreaIndex: 0,
-                  onSnapToArea: (snapAreaIndex) {
-                    // Bring card to front when moved between different areas
-                    // This callback only triggers when start area != end area
-                    _bringCardToFront(cardId);
-                  },
-                  onDragStart: () => _startDragging(cardId),
-                  onDragEnd: () => _stopDragging(),
+                  renderConfig: CardConfigAdapter.createRenderConfig(
+                    context, 
+                    cardMap['suit']!, 
+                    cardMap['rank']!
+                  ),
+                  snapBehavior: CardConfigAdapter.createSnapBehavior(
+                    [topLeftArea, topRightArea, bottomArea],
+                    getBottomAreaCardCount: _getBottomAreaCardCount,
+                  ),
+                  animationBehavior: CardConfigAdapter.createAnimationBehavior(context),
+                  initialPosition: CardConfigAdapter.calculateInitialPosition(
+                    topLeftArea,
+                    Size(
+                      context.cardConfig.dimensions.width,
+                      context.cardConfig.dimensions.width * context.cardConfig.dimensions.aspectRatio
+                    ),
+                    cardIndex,
+                    context.config.board.stackOffset,
+                  ),
+                  initiallyFaceUp: false,
+                  callbacks: CardConfigAdapter.createCallbacks(
+                    onSnapToArea: (snapAreaIndex) {
+                      _updateBottomAreaCards(cardId, snapAreaIndex);
+                      _bringCardToFront(cardId);
+                    },
+                    onDragStart: () => _startDragging(cardId),
+                    onDragEnd: () => _stopDragging(),
+                  ),
                 );
               }).toList(),
             ],

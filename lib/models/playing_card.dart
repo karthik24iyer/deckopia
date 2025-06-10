@@ -2,57 +2,160 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:deckopia/config/snap_area_config.dart';
-import 'package:deckopia/util/config_provider.dart';
 
+import 'card_behavior_interfaces.dart';
+import 'card_animation_behavior.dart';
+
+/// Flexible, decoupled PlayingCard widget with dependency injection
 class PlayingCard extends StatefulWidget {
+  // Core card data
   final String suit;
   final String rank;
-  final List<SnapAreaConfig> snapAreas;
-  final int initialSnapAreaIndex;
-  final Function(int snapAreaIndex)? onSnapToArea;
-  final VoidCallback? onDragStart;
-  final VoidCallback? onDragEnd;
+  final String? cardId; // Optional unique identifier
+  
+  // Rendering configuration (no context dependencies)
+  final CardRenderConfig renderConfig;
 
+  // Behavior injection
+  final SnapBehavior? snapBehavior;
+  final CardAnimationBehavior? animationBehavior;
+  final CardDragBehavior? dragBehavior;
+  
+  // Position management (choose between controlled/uncontrolled)
+  final Offset? position; // Controlled - parent manages position
+  final Offset? initialPosition; // Uncontrolled - card manages own position
+  
+  // Interaction callbacks
+  final CardInteractionCallbacks? callbacks;
+  
+  // State control
+  final bool? isFaceUp; // Controlled face up/down state
+  final bool? initiallyFaceUp; // Initial face up/down for uncontrolled
+  final bool enabled;
+  
   const PlayingCard({
     super.key,
     required this.suit,
     required this.rank,
-    required this.snapAreas,
-    this.initialSnapAreaIndex = 0,
-    this.onSnapToArea,
-    this.onDragStart,
-    this.onDragEnd,
-  });
-
+    required this.renderConfig,
+    this.cardId,
+    this.snapBehavior,
+    this.animationBehavior,
+    this.dragBehavior,
+    this.position, // Controlled mode
+    this.initialPosition, // Uncontrolled mode  
+    this.callbacks,
+    this.isFaceUp, // Controlled mode
+    this.initiallyFaceUp, // Uncontrolled mode
+    this.enabled = true,
+  }) : assert(
+         (position != null) != (initialPosition != null),
+         'Must provide either position (controlled) or initialPosition (uncontrolled), not both'
+       ),
+       assert(
+         (isFaceUp != null) != (initiallyFaceUp != null),
+         'Must provide either isFaceUp (controlled) or initiallyFaceUp (uncontrolled), not both'
+       );
+  
+  /// Factory for backward compatibility with existing code
+  factory PlayingCard.fromLegacy({
+    Key? key,
+    required String suit,
+    required String rank,
+    required List<dynamic> snapAreas, // Accept any snap area type
+    int initialSnapAreaIndex = 0,
+    Function(int? snapAreaIndex)? onSnapToArea,
+    VoidCallback? onDragStart,
+    VoidCallback? onDragEnd,
+    // Legacy context config dependencies would be passed as explicit config
+    required CardRenderConfig renderConfig,
+    CardAnimationBehavior? animationBehavior,
+  }) {
+    // Convert legacy snap areas to SnapBehavior if needed
+    SnapBehavior? snapBehavior;
+    // This would need specific implementation based on snap area type
+    
+    return PlayingCard(
+      key: key,
+      suit: suit,
+      rank: rank,
+      renderConfig: renderConfig,
+      snapBehavior: snapBehavior,
+      animationBehavior: animationBehavior ?? DefaultCardAnimationBehavior(),
+      initialPosition: Offset.zero, // Would calculate from snap areas
+      initiallyFaceUp: renderConfig.initiallyFaceUp,
+      callbacks: CardInteractionCallbacks(
+        onSnapAreaChanged: onSnapToArea,
+        onDragStart: onDragStart,
+        onDragEnd: onDragEnd,
+      ),
+    );
+  }
+  
   @override
   State<PlayingCard> createState() => _PlayingCardState();
 }
 
-class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin {
-  late Offset position;
-  int? currentSnapAreaIndex;
-  int? dragStartSnapAreaIndex; // Track which area drag started from
+class _PlayingCardState extends State<PlayingCard> 
+    with TickerProviderStateMixin {
+  
+  // Position management
+  late Offset _currentPosition;
+  bool get _isPositionControlled => widget.position != null;
+  
+  // Face up/down state management  
+  late bool _isFaceUp;
+  bool get _isFaceUpControlled => widget.isFaceUp != null;
+  
+  // Animation controllers
   late AnimationController _flipController;
   late AnimationController _rotationController;
   late Animation<double> _flipAnimation;
   late Animation<double> _rotationAnimation;
-  late bool _isFrontVisible;
-  final _random = math.Random();
-  Timer? _rotationTimer;
+  
+  // Rotation state
   double _currentRotation = 0.0;
   double _targetRotation = 0.0;
-  bool _initialized = false;
-
+  Timer? _rotationTimer;
+  final _random = math.Random();
+  
+  // Snap state
+  int? _currentSnapArea;
+  int? _dragStartSnapArea;
+  
   @override
   void initState() {
     super.initState();
-    currentSnapAreaIndex = widget.initialSnapAreaIndex;
-
-    // Initialize controllers without duration (will be set in didChangeDependencies)
-    _flipController = AnimationController(vsync: this);
-    _rotationController = AnimationController(vsync: this);
-
+    
+    // Initialize position
+    _currentPosition = widget.position ?? widget.initialPosition ?? Offset.zero;
+    
+    // Initialize face up state
+    _isFaceUp = widget.isFaceUp ?? widget.initiallyFaceUp ?? 
+               widget.renderConfig.initiallyFaceUp;
+    
+    // Initialize animation controllers
+    final animBehavior = widget.animationBehavior ?? DefaultCardAnimationBehavior();
+    
+    _flipController = AnimationController(
+      duration: animBehavior.flipDuration,
+      vsync: this,
+    );
+    
+    _rotationController = AnimationController(
+      duration: animBehavior.rotationDuration, 
+      vsync: this,
+    );
+    
+    _setupAnimations();
+    
+    // Set initial flip state
+    if (!_isFaceUp) {
+      _flipController.value = 1.0;
+    }
+  }
+  
+  void _setupAnimations() {
     _flipAnimation = Tween<double>(
       begin: 0,
       end: math.pi,
@@ -60,15 +163,15 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       parent: _flipController,
       curve: Curves.easeInOut,
     ));
-
+    
     _flipAnimation.addListener(() {
       setState(() {
         if (_flipController.isAnimating) {
-          _isFrontVisible = _flipAnimation.value <= math.pi / 2;
+          _isFaceUp = _flipAnimation.value <= math.pi / 2;
         }
       });
     });
-
+    
     _rotationAnimation = Tween<double>(
       begin: 0,
       end: 1,
@@ -76,7 +179,7 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       parent: _rotationController,
       curve: Curves.easeInOut,
     ));
-
+    
     _rotationAnimation.addListener(() {
       setState(() {
         _currentRotation = lerpDouble(
@@ -87,169 +190,199 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
       });
     });
   }
-
+  
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (!_initialized) {
-      final cardConfig = context.cardConfig;
-
-      // Initialize state variables that depend on config
-      _isFrontVisible = cardConfig.initial.isFaceUp;
-      _currentRotation = cardConfig.initial.rotation;
-
-      // Set controller durations
-      _flipController.duration = cardConfig.animation.flipDuration;
-      _rotationController.duration = cardConfig.animation.rotationTransitionDuration;
-
-      // Initialize position
-      _initializePosition();
-
-      // Set initial flip state
-      if (!_isFrontVisible) {
-        _flipController.value = 1.0;
-      }
-
-      _initialized = true;
+  void didUpdateWidget(PlayingCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Update controlled position
+    if (_isPositionControlled && widget.position != oldWidget.position) {
+      setState(() {
+        _currentPosition = widget.position!;
+      });
+    }
+    
+    // Update controlled face up state
+    if (_isFaceUpControlled && widget.isFaceUp != oldWidget.isFaceUp) {
+      _setFaceUp(widget.isFaceUp!);
     }
   }
-
-  void _initializePosition() {
-    final snapArea = widget.snapAreas[widget.initialSnapAreaIndex];
-    position = Offset(
-      snapArea.position.dx + (snapArea.size.width - cardSize.width) / 2,
-      snapArea.position.dy + (snapArea.size.height - cardSize.height) / 2,
-    );
+  
+  void _setFaceUp(bool faceUp) {
+    if (faceUp == _isFaceUp) return;
+    
+    if (faceUp) {
+      _flipController.reverse();
+    } else {
+      _flipController.forward();
+    }
   }
-
-  Size get cardSize => Size(
-    context.cardConfig.dimensions.width,
-    context.cardConfig.dimensions.width * context.cardConfig.dimensions.aspectRatio,
-  );
-
+  
+  void _flipCard() {
+    if (_flipController.isAnimating) return;
+    
+    if (_isFaceUpControlled) {
+      // In controlled mode, notify parent instead of changing state directly
+      widget.callbacks?.onFlip?.call();
+    } else {
+      // In uncontrolled mode, manage flip state internally
+      _setFaceUp(!_isFaceUp);
+    }
+  }
+  
   void _startRandomRotation() {
+    final animBehavior = widget.animationBehavior;
+    if (animBehavior == null || animBehavior.maxRotationRadians == 0) return;
+    
+    animBehavior.onAnimationStart();
+    
     _rotationTimer?.cancel();
     _rotationTimer = Timer.periodic(
-      context.cardConfig.animation.rotationUpdateInterval,
-          (timer) {
+      animBehavior.rotationUpdateInterval,
+      (timer) {
         if (mounted) {
-          final maxRadians = context.cardConfig.animation.maxRotationDegrees * math.pi / 180;
-          _targetRotation = (_random.nextDouble() * 2 - 1) * maxRadians;
+          if (animBehavior is DefaultCardAnimationBehavior) {
+            _targetRotation = animBehavior.getRandomRotation();
+          } else {
+            _targetRotation = (_random.nextDouble() * 2 - 1) * 
+                             animBehavior.maxRotationRadians;
+          }
           _rotationController.forward(from: 0);
         }
       },
     );
   }
-
+  
   void _stopRandomRotation() {
+    widget.animationBehavior?.onAnimationStop();
     _rotationTimer?.cancel();
     _rotationTimer = null;
   }
-
-  void _updateSnapArea(Offset newPosition) {
-    int? newSnapAreaIndex;
-
-    for (int i = 0; i < widget.snapAreas.length; i++) {
-      if (widget.snapAreas[i].containsPoint(newPosition, cardSize)) {
-        newSnapAreaIndex = i;
-        break;
-      }
-    }
-
-    if (newSnapAreaIndex != currentSnapAreaIndex) {
+  
+  void _handlePanStart(DragStartDetails details) {
+    if (!widget.enabled) return;
+    
+    _startRandomRotation();
+    _dragStartSnapArea = _currentSnapArea;
+    
+    widget.dragBehavior?.onDragStart(_currentPosition);
+    widget.callbacks?.onDragStart?.call();
+  }
+  
+  void _handlePanUpdate(DragUpdateDetails details) {
+    if (!widget.enabled) return;
+    
+    final newPosition = _currentPosition + details.delta;
+    
+    if (!_isPositionControlled) {
       setState(() {
-        currentSnapAreaIndex = newSnapAreaIndex;
+        _currentPosition = newPosition;
       });
     }
-  }
-
-  void _snapToNearestArea() {
-    _stopRandomRotation();
-
-    int nearestAreaIndex = 0;
-    double minDistance = double.infinity;
-
-    final cardCenter = Offset(
-      position.dx + cardSize.width / 2,
-      position.dy + cardSize.height / 2,
-    );
-
-    for (int i = 0; i < widget.snapAreas.length; i++) {
-      final distance = (cardCenter - widget.snapAreas[i].center).distance;
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearestAreaIndex = i;
+    
+    // Update snap area if we have snap behavior
+    if (widget.snapBehavior != null && widget.cardId != null) {
+      final snapResult = widget.snapBehavior!.calculateSnap(
+        newPosition, 
+        widget.renderConfig.cardSize,
+        widget.cardId!
+      );
+      final newSnapArea = snapResult?.snapAreaIndex;
+      if (newSnapArea != _currentSnapArea) {
+        setState(() {
+          _currentSnapArea = newSnapArea;
+        });
       }
     }
-
-    setState(() {
-      currentSnapAreaIndex = nearestAreaIndex;
-      position = widget.snapAreas[nearestAreaIndex].clampPosition(position, cardSize);
-
-      final maxRadians = context.cardConfig.animation.maxRotationDegrees * math.pi / 180;
-      _targetRotation = (_random.nextDouble() - 0.5) * 2 * maxRadians;
-      _rotationController.forward(from: 0);
-    });
-
-    // Only trigger callback if card moved from one area to another
-    if (dragStartSnapAreaIndex != null && dragStartSnapAreaIndex != nearestAreaIndex) {
-      widget.onSnapToArea?.call(nearestAreaIndex);
+    
+    widget.dragBehavior?.onDragUpdate(newPosition);
+    widget.callbacks?.onPositionChanged?.call(newPosition);
+  }
+  
+  void _handlePanEnd(DragEndDetails details) {
+    if (!widget.enabled) return;
+    
+    _stopRandomRotation();
+    
+    // Handle snapping
+    if (widget.snapBehavior != null && widget.cardId != null) {
+      final snapResult = widget.snapBehavior!.calculateSnap(
+        _currentPosition,
+        widget.renderConfig.cardSize,
+        widget.cardId!
+      );
+      
+      if (snapResult != null) {
+        if (!_isPositionControlled) {
+          setState(() {
+            _currentPosition = snapResult.snapPosition;
+          });
+        }
+        
+        // Control rotation based on snap area
+        if (!snapResult.allowsRotation) {
+          _stopRandomRotation();
+          // Reset rotation to 0 for areas that don't allow it
+          setState(() {
+            _currentRotation = 0.0;
+            _targetRotation = 0.0;
+          });
+        }
+        
+        // Notify snap behavior about card movement
+        if (_dragStartSnapArea != snapResult.snapAreaIndex) {
+          widget.snapBehavior!.onCardMoved(
+            widget.cardId!,
+            _dragStartSnapArea,
+            snapResult.snapAreaIndex
+          );
+          widget.callbacks?.onSnapAreaChanged?.call(snapResult.snapAreaIndex);
+        }
+        
+        setState(() {
+          _currentSnapArea = snapResult.snapAreaIndex;
+        });
+      }
     }
     
-    // Reset drag start area
-    dragStartSnapAreaIndex = null;
+    widget.dragBehavior?.onDragEnd(_currentPosition);
+    widget.callbacks?.onDragEnd?.call();
+    
+    _dragStartSnapArea = null;
   }
-
-  void _flipCard() {
-    if (_flipController.isAnimating) return;
-    if (_isFrontVisible) {
-      _flipController.forward();
-    } else {
-      _flipController.reverse();
-    }
-  }
-
+  
   @override
   void dispose() {
     _rotationTimer?.cancel();
     _flipController.dispose();
     _rotationController.dispose();
+    
+    // Dispose animation behavior if it has cleanup
+    if (widget.animationBehavior is DefaultCardAnimationBehavior) {
+      (widget.animationBehavior as DefaultCardAnimationBehavior).dispose();
+    }
+    
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    final cardConfig = context.cardConfig;
-
+    final config = widget.renderConfig;
+    final position = _isPositionControlled ? widget.position! : _currentPosition;
+    
     return Positioned(
       left: position.dx,
       top: position.dy,
       child: GestureDetector(
-        onPanStart: (details) {
-          _startRandomRotation();
-          // Record which snap area we started dragging from
-          dragStartSnapAreaIndex = currentSnapAreaIndex;
-          // Notify that drag started (brings card to front during drag)
-          widget.onDragStart?.call();
+        onPanStart: _handlePanStart,
+        onPanUpdate: _handlePanUpdate,
+        onPanEnd: _handlePanEnd,
+        onTap: () {
+          widget.callbacks?.onTap?.call();
+          _flipCard(); // Default tap behavior is flip
         },
-        onPanUpdate: (details) {
-          setState(() {
-            position = Offset(
-              position.dx + details.delta.dx,
-              position.dy + details.delta.dy,
-            );
-            _updateSnapArea(position);
-          });
-        },
-        onPanEnd: (details) {
-          _snapToNearestArea();
-          widget.onDragEnd?.call();
-        },
-        onPanCancel: () {
-          _stopRandomRotation();
-          widget.onDragEnd?.call();
-        },
-        onTap: _flipCard,
+        onDoubleTap: widget.callbacks?.onDoubleTap,
+        onLongPress: widget.callbacks?.onLongPress,
         child: Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()..rotateZ(_currentRotation),
@@ -262,18 +395,23 @@ class _PlayingCardState extends State<PlayingCard> with TickerProviderStateMixin
                   ..setEntry(3, 2, 0.001)
                   ..rotateY(_flipAnimation.value),
                 child: Container(
-                  width: cardSize.width,
-                  height: cardSize.height,
+                  width: config.cardSize.width,
+                  height: config.cardSize.height,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(cardConfig.dimensions.borderRadius),
+                    borderRadius: BorderRadius.circular(config.borderRadius),
                     image: DecorationImage(
                       image: AssetImage(
-                        _isFrontVisible
-                            ? context.assetsConfig.cards.getCardPath(widget.suit, widget.rank)
-                            : context.assetsConfig.cards.backCardPath,
+                        _isFaceUp ? config.frontImagePath : config.backImagePath,
                       ),
                       fit: BoxFit.cover,
                     ),
+                    boxShadow: config.shadowColor != null ? [
+                      BoxShadow(
+                        color: config.shadowColor!,
+                        blurRadius: config.shadowBlur,
+                        offset: config.shadowOffset,
+                      ),
+                    ] : null,
                   ),
                 ),
               );
