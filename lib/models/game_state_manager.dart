@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/snap_behavior_config.dart';
 
 /// Centralized state manager for all card positions and area management
 class GameStateManager extends ChangeNotifier {
@@ -6,6 +7,9 @@ class GameStateManager extends ChangeNotifier {
   static const String concentricArea0 = 'concentric_0';
   static const String concentricArea1 = 'concentric_1'; 
   static const String horizontalArea2 = 'horizontal_2';
+  
+  // Configuration for snap behaviors
+  final SnapBehaviorConfig config;
   
   // Card tracking: areaId -> [cardIds]
   final Map<String, List<String>> _areaCards = {
@@ -16,6 +20,8 @@ class GameStateManager extends ChangeNotifier {
   
   // Reverse mapping: cardId -> areaId (for quick lookups)
   final Map<String, String> _cardToArea = {};
+  
+  GameStateManager({this.config = SnapBehaviorConfig.defaultConfig});
   
   /// Initialize all cards in the starting area (concentric_0)
   void initializeCards(List<String> cardIds) {
@@ -119,12 +125,15 @@ class GameStateManager extends ChangeNotifier {
       cardPosition = getCardIndex(cardId, areaId);
     }
     
-    // Small offset for visual stacking effect
-    const double stackOffset = 2.0;
-    final offsetX = cardPosition * stackOffset;
-    final offsetY = cardPosition * stackOffset;
-    
-    return Offset(center.dx + offsetX, center.dy + offsetY);
+    // Apply offset based on configuration
+    if (config.enableConcentricOffset) {
+      final offsetX = cardPosition * config.concentricStackOffset;
+      final offsetY = cardPosition * config.concentricStackOffset;
+      return Offset(center.dx + offsetX, center.dy + offsetY);
+    } else {
+      // No offset - all cards at exact center
+      return center;
+    }
   }
   
   /// Calculate horizontal stacking position (for bottom area)
@@ -149,8 +158,8 @@ class GameStateManager extends ChangeNotifier {
       cardPosition = getCardIndex(cardId, areaId);
     }
     
-    // Horizontal spacing between cards
-    const double cardSpacing = 10.0;
+    // Horizontal spacing between cards (from configuration)
+    final cardSpacing = config.horizontalCardSpacing;
     final horizontalOffset = cardPosition * cardSpacing;
     
     return Offset(leftEdge + horizontalOffset, verticalCenter);

@@ -7,6 +7,7 @@ import 'package:deckopia/models/game_state_manager.dart';
 import 'package:deckopia/models/card_snap_behavior.dart';
 import 'package:deckopia/models/card_behavior_interfaces.dart';
 import 'package:deckopia/models/card_animation_behavior.dart';
+import 'package:deckopia/config/snap_behavior_config.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
@@ -35,7 +36,8 @@ class _BoardScreenState extends State<BoardScreen> {
   @override
   void initState() {
     super.initState();
-    gameState = GameStateManager();
+    // Initialize with default configuration (30px spacing, no concentric offset)
+    gameState = GameStateManager(config: SnapBehaviorConfig.defaultConfig);
   }
 
   @override
